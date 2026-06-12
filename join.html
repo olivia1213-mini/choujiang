@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>签到加入抽奖</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root { --purple: #534AB7; --purple-mid: #7F77DD; --purple-light: #EEEDFE; --text: #2C2C2A; --text-sec: #5F5E5A; --text-hint: #888780; --border: rgba(0,0,0,0.12); }
+body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: linear-gradient(135deg, #f5f4f0 0%, #fff 100%); min-height: 100vh; color: var(--text); }
+.header { background: #fff; border-bottom: 1px solid var(--border); padding: 16px 20px; text-align: center; }
+.header .title { font-size: 18px; font-weight: 600; color: var(--purple); }
+.header .subtitle { font-size: 12px; color: var(--text-hint); margin-top: 2px; }
+.container { max-width: 420px; margin: 0 auto; padding: 20px; }
+.event-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.event-name { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+.event-meta { font-size: 12px; color: var(--text-hint); line-height: 1.8; }
+.prize-preview { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); }
+.prize-preview-title { font-size: 12px; color: var(--text-sec); margin-bottom: 8px; }
+.prize-chip { display: inline-block; padding: 4px 10px; background: var(--purple-light); color: var(--purple); border-radius: 12px; font-size: 12px; margin: 2px; }
+.form-section { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.section-title { font-size: 16px; font-weight: 500; margin-bottom: 14px; }
+.input-group { margin-bottom: 14px; }
+.input-group label { display: block; font-size: 13px; color: var(--text-sec); margin-bottom: 5px; }
+.input-group input { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 15px; font-family: inherit; outline: none; transition: all 0.15s; -webkit-appearance: none; }
+.input-group input:focus { border-color: var(--purple-mid); }
+.join-btn { width: 100%; padding: 14px; background: var(--purple); color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 500; cursor: pointer; font-family: inherit; }
+.join-btn:active { opacity: 0.9; }
+.join-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.error-msg { font-size: 12px; color: #A32D2D; margin-bottom: 10px; display: none; }
+.success-screen { text-align: center; padding: 40px 20px; display: none; }
+.success-screen .icon { font-size: 64px; margin-bottom: 16px; }
+.success-screen .name { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+.success-screen .info { font-size: 13px; color: var(--text-sec); margin-bottom: 20px; }
+.no-id-screen { text-align: center; padding: 60px 20px; display: none; }
+.tip { font-size: 11px; color: #888; margin-top: -8px; margin-bottom: 8px; }
+.note-box { background: #EEEDFE; border: 1px solid var(--purple-mid); border-radius: 10px; padding: 12px 16px; margin-top: 16px; font-size: 12px; color: var(--purple); line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="title">扫码签到</div>
+  <div class="subtitle" id="event-subtitle">正在加载活动信息...</div>
+</div>
+
+<div class="container">
+
+  <div class="no-id-screen" id="no-id-screen">
+    <div style="font-size:48px;margin-bottom:16px;">🔗</div>
+    <div style="font-size:16px;font-weight:500;margin-bottom:8px;">请扫描活动二维码</div>
+    <div style="font-size:13px;color:#888;margin-bottom:20px;">此链接无效，请向活动组织者获取正确的二维码</div>
+    <div style="font-size:12px;color:#888;border-top:1px solid #eee;padding-top:16px;">
+      您是活动组织者？<br>
+      <a href="admin.html" style="color:var(--purple);text-decoration:none;font-weight:500;">点击进入管理员后台</a>
+    </div>
+  </div>
+
+  <div id="loading-screen">
+    <div style="text-align:center;padding:60px 20px;">
+      <div style="width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px;"></div>
+      <div style="font-size:13px;color:var(--text-hint);">正在加载活动信息...</div>
+    </div>
+  </div>
+
+  <div id="main-content" style="display:none;">
+    <div class="event-card">
+      <div class="event-name" id="event-name">活动名称</div>
+      <div class="event-meta" id="event-meta"></div>
+      <div class="prize-preview" id="prize-preview" style="display:none;">
+        <div class="prize-preview-title">奖项预览</div>
+        <div id="prize-chips"></div>
+      </div>
+    </div>
+
+    <div class="form-section" id="join-form">
+      <div class="section-title">请填写信息加入抽奖</div>
+      <div class="error-msg" id="error-msg">错误信息</div>
+      <div class="input-group">
+        <label>您的姓名</label>
+        <input type="text" id="nameInput" placeholder="请输入真实姓名" maxlength="20" />
+      </div>
+      <div class="input-group">
+        <label>手机号码</label>
+        <input type="tel" id="phoneInput" placeholder="请输入手机号（11位）" maxlength="11" inputmode="numeric" />
+      </div>
+      <p class="tip">一个手机号仅可参与一次本活动</p>
+      <button class="join-btn" id="joinBtn" onclick="joinLottery()">
+        <span>签到并加入抽奖</span>
+      </button>
+      <div class="note-box" id="server-note" style="display:none;">
+        在线模式：签到后将实时同步到管理后台，无需手动刷新。
+      </div>
+    </div>
+
+    <div class="success-screen" id="success-screen">
+      <div class="icon">✅</div>
+      <div class="name" id="success-name">张三</div>
+      <div class="info">签到成功！您已成功加入抽奖池</div>
+      <div style="font-size:13px;color:var(--text-hint);margin-bottom:20px;">当前抽奖池共 <strong id="pool-num" style="color:var(--purple);">0</strong> 人</div>
+    </div>
+  </div>
+
+</div>
+
+<style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+
+<script>
+// ============= 状态 =============
+var ACTIVITY_CONFIG = null;
+var HAS_SERVER = false;
+
+// ============= URL 解析 =============
+function parseConfigFromHash() {
+  try {
+    var hash = window.location.hash.slice(1);
+    if (!hash) return null;
+
+    if (/^[A-Z0-9]{4,8}$/.test(hash) && hash.length <= 8) {
+      // 旧版短ID：尝试从 localStorage 读取
+      var oldSetup = null;
+      try { oldSetup = JSON.parse(localStorage.getItem('lottery_setup')); } catch(e) {}
+      if (oldSetup && oldSetup.name) {
+        return { s: oldSetup, p: null, _actId: hash };
+      }
+      return null;
+    }
+
+    // 新版base64解码
+    var latin1 = atob(hash);
+    var percentEncoded = latin1.split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join('');
+    var miniSetup = JSON.parse(decodeURIComponent(percentEncoded));
+
+    var setup = {
+      name: miniSetup.n || '',
+      date: miniSetup.d || '',
+      org: miniSetup.o || '',
+      location: miniSetup.l || '',
+      desc: miniSetup.c || '',
+      _actId: miniSetup.id || ''
+    };
+
+    return { s: setup, p: null, _actId: miniSetup.id || '' };
+  } catch(e) {
+    return null;
+  }
+}
+
+// ============= 初始化 =============
+(function init() {
+  // 检测服务器 — 必须验证返回 JSON {ok:true}，避免静态服务器误判
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', '/api/health');
+  xhr.timeout = 2000;
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      try {
+        var data = JSON.parse(xhr.responseText);
+        if (data && data.ok === true) {
+          HAS_SERVER = true;
+          document.getElementById('server-note').style.display = 'block';
+          return;
+        }
+      } catch(e) {}
+    }
+    // 不是真正的服务器
+    HAS_SERVER = false;
+  };
+  xhr.onerror = function() { HAS_SERVER = false; };
+  xhr.ontimeout = function() { HAS_SERVER = false; };
+  xhr.send();
+
+  // 解析活动配置
+  document.getElementById('loading-screen').style.display = 'none';
+  ACTIVITY_CONFIG = parseConfigFromHash();
+
+  if (!ACTIVITY_CONFIG || !ACTIVITY_CONFIG.s || !ACTIVITY_CONFIG.s.name) {
+    document.getElementById('no-id-screen').style.display = 'block';
+    return;
+  }
+
+  var setup = ACTIVITY_CONFIG.s;
+  var actId = ACTIVITY_CONFIG._actId || setup._actId || '';
+
+  // 显示活动信息
+  document.getElementById('event-name').textContent = setup.name;
+  var metaHtml = '';
+  if (setup.date) metaHtml += '📅 ' + setup.date + '<br>';
+  if (setup.org) metaHtml += '🏢 ' + setup.org + '<br>';
+  if (setup.location) metaHtml += '📍 ' + setup.location + '<br>';
+  if (setup.desc) metaHtml += '📝 ' + setup.desc;
+  document.getElementById('event-meta').innerHTML = metaHtml;
+  document.getElementById('event-subtitle').textContent = setup.name;
+
+  // 从服务器/本地加载奖项
+  loadPrizes();
+
+  // 检查是否已签到
+  checkAlreadyJoined();
+
+  document.getElementById('main-content').style.display = 'block';
+})();
+
+function loadPrizes() {
+  // 尝试从服务器获取
+  if (HAS_SERVER) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/api/prizes');
+    xhr.timeout = 3000;
+    xhr.onload = function() {
+      if (xhr.status === 200) {
+        try {
+          var prizes = JSON.parse(xhr.responseText);
+          ACTIVITY_CONFIG.p = prizes;
+          showPrizes(prizes);
+        } catch(e) {}
+      }
+    };
+    xhr.send();
+  } else {
+    // 从 localStorage 加载
+    try {
+      var p = JSON.parse(localStorage.getItem('lottery_prizes'));
+      if (p && p.length) { ACTIVITY_CONFIG.p = p; showPrizes(p); }
+    } catch(e) {}
+  }
+}
+
+function showPrizes(prizes) {
+  document.getElementById('prize-preview').style.display = 'block';
+  document.getElementById('prize-chips').innerHTML = prizes.map(function(p) {
+    return '<span class="prize-chip">' + escH(p.name) + ' x' + p.count + '</span>';
+  }).join('');
+}
+
+function escH(s) { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ============= 已签到检查 =============
+function checkAlreadyJoined() {
+  var setup = ACTIVITY_CONFIG.s;
+  var actId = ACTIVITY_CONFIG._actId || (setup && setup._actId) || '';
+  var key = 'lottery_joined_' + (actId || 'default');
+
+  var saved = localStorage.getItem(key);
+  if (saved) {
+    try {
+      var data = JSON.parse(saved);
+      if (data.actId && data.actId !== actId) {
+        // 活动已重置
+        localStorage.removeItem(key);
+        return;
+      }
+      showSuccess(data.name);
+    } catch(e) {}
+  }
+}
+
+// ============= 签到逻辑 =============
+function showError(msg) {
+  var el = document.getElementById('error-msg');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(function() { el.style.display = 'none'; }, 4000);
+}
+
+function joinLottery() {
+  var name = document.getElementById('nameInput').value.trim();
+  var phone = document.getElementById('phoneInput').value.trim();
+  if (!name) { showError('请输入您的姓名'); return; }
+  if (name.length < 2) { showError('姓名至少需要 2 个字'); return; }
+  if (!phone) { showError('请输入手机号码'); return; }
+  if (!/^1[3-9]\d{9}$/.test(phone)) { showError('请输入正确的 11 位手机号码'); return; }
+
+  var btn = document.getElementById('joinBtn');
+  var setup = ACTIVITY_CONFIG.s || {};
+  var actId = ACTIVITY_CONFIG._actId || setup._actId || '';
+
+  btn.disabled = true;
+  btn.innerHTML = '<span style="display:inline-block;width:16px;height:16px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 0.6s linear infinite;vertical-align:middle;margin-right:6px;"></span>提交中...';
+
+  if (HAS_SERVER) {
+    // ===== 服务器模式：直接提交到 API =====
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/participants');
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.timeout = 8000;
+    xhr.onload = function() {
+      btn.disabled = false;
+      btn.innerHTML = '<span>签到并加入抽奖</span>';
+      if (xhr.status === 200 || xhr.status === 201) {
+        try {
+          var resp = JSON.parse(xhr.responseText);
+          if (resp && resp.ok) {
+            // 记录本地状态
+            var key = 'lottery_joined_' + (actId || 'default');
+            localStorage.setItem(key, JSON.stringify({ name: name, phone: phone, actId: actId, poolSize: resp.count }));
+            // 也存到本地 participants（兼容其他页面从 localStorage 读取）
+            var parts = [];
+            try { parts = JSON.parse(localStorage.getItem('lottery_participants')) || []; } catch(e) {}
+            if (!parts.some(function(p) { return p.phone === phone && p.actId === actId; })) {
+              parts.push(resp.entry || { name: name, phone: phone, actId: actId, joinTime: new Date().toLocaleString(), source: 'qr' });
+              localStorage.setItem('lottery_participants', JSON.stringify(parts));
+            }
+            // 直接用服务器返回的人数（过滤当前 actId），不需要第二次 GET
+            var poolCount = typeof resp.count === 'number' ? resp.count : parts.length;
+            showSuccess(name, poolCount);
+            return;
+          }
+          showError('服务器响应异常，请重试');
+        } catch(e) {
+          showError('服务器响应异常，请重试');
+        }
+      } else {
+        try {
+          var err = JSON.parse(xhr.responseText);
+          showError(err.error || '提交失败，请重试');
+        } catch(e2) {
+          showError('服务器繁忙，请稍后重试');
+        }
+      }
+    };
+    xhr.onerror = function() {
+      btn.disabled = false;
+      btn.innerHTML = '<span>签到并加入抽奖</span>';
+      // 网络失败时降级到离线模式
+      HAS_SERVER = false;
+      submitOffline(name, phone, actId);
+    };
+    xhr.ontimeout = function() {
+      btn.disabled = false;
+      btn.innerHTML = '<span>签到并加入抽奖</span>';
+      // 超时时降级到离线模式
+      HAS_SERVER = false;
+      submitOffline(name, phone, actId);
+    };
+    xhr.send(JSON.stringify({ name: name, phone: phone, actId: actId, source: 'qr' }));
+  } else {
+    // ===== 离线模式：使用 localStorage =====
+    submitOffline(name, phone, actId);
+  }
+}
+
+// 离线签到（localStorage 模式 + 降级兜底）
+function submitOffline(name, phone, actId) {
+  try {
+    var participants = [];
+    try { participants = JSON.parse(localStorage.getItem('lottery_participants')) || []; } catch(e) {}
+
+    if (participants.some(function(p) { return p.phone === phone && p.actId === actId; })) {
+      showError('该手机号已参与本次活动');
+      return;
+    }
+
+    participants.push({ name: name, phone: phone, actId: actId, joinTime: new Date().toLocaleString(), source: 'qr' });
+    localStorage.setItem('lottery_participants', JSON.stringify(participants));
+
+    var key = 'lottery_joined_' + (actId || 'default');
+    localStorage.setItem(key, JSON.stringify({ name: name, phone: phone, actId: actId }));
+
+    showSuccess(name, participants.filter(function(p) { return p.actId === actId; }).length);
+  } catch(e) {
+    showError('提交失败，请重试');
+  }
+}
+
+function showSuccess(name, poolCount) {
+  document.getElementById('success-name').textContent = name;
+  document.getElementById('join-form').style.display = 'none';
+  document.getElementById('success-screen').style.display = 'block';
+  // 优先使用传入的确切人数
+  if (typeof poolCount === 'number') {
+    document.getElementById('pool-num').textContent = poolCount;
+  } else {
+    document.getElementById('pool-num').textContent = '...';
+  }
+  // 异步再刷新一次确保最新（有服务器时走 API，无服务器时走 localStorage）
+  fetchPoolCount();
+}
+
+function fetchPoolCount() {
+  var actId = ACTIVITY_CONFIG._actId || ((ACTIVITY_CONFIG.s || {})._actId) || '';
+
+  if (HAS_SERVER) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/api/participants');
+    xhr.timeout = 3000;
+    xhr.onload = function() {
+      if (xhr.status === 200) {
+        try {
+          var parts = JSON.parse(xhr.responseText);
+          if (Array.isArray(parts)) {
+            var count = actId ? parts.filter(function(p) { return p.actId === actId; }).length : parts.length;
+            document.getElementById('pool-num').textContent = count;
+            return;
+          }
+        } catch(e) {}
+      }
+      // 服务器返回异常，降级到 localStorage
+      fallbackPoolCount(actId);
+    };
+    xhr.onerror = function() { fallbackPoolCount(actId); };
+    xhr.ontimeout = function() { fallbackPoolCount(actId); };
+    xhr.send();
+  } else {
+    fallbackPoolCount(actId);
+  }
+}
+
+// localStorage 兜底计数
+function fallbackPoolCount(actId) {
+  try {
+    var parts = JSON.parse(localStorage.getItem('lottery_participants')) || [];
+    var count = actId ? parts.filter(function(p) { return p.actId === actId; }).length : parts.length;
+    document.getElementById('pool-num').textContent = count;
+  } catch(e) {}
+}
+
+// 键盘事件
+document.addEventListener('DOMContentLoaded', function() {
+  var nameInput = document.getElementById('nameInput');
+  var phoneInput = document.getElementById('phoneInput');
+  if (nameInput) nameInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') phoneInput.focus(); });
+  if (phoneInput) phoneInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') joinLottery(); });
+});
+</script>
+
+</body>
+</html>
