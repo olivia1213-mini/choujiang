@@ -1,0 +1,9 @@
+node_modules/
+*.log
+npm-debug.log*
+data.json
+.DS_Store
+*.exe
+*.bat
+*.sh
+.env
