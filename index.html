@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>扫码抽奖系统</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: linear-gradient(135deg, #1a0533 0%, #2d1b69 50%, #1a0533 100%); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; padding: 40px 20px; }
+.container { max-width: 520px; width: 100%; text-align: center; }
+.logo { font-size: 64px; margin-bottom: 12px; animation: float 3s ease-in-out infinite; }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: 2px; }
+.subtitle { font-size: 14px; opacity: 0.7; margin-bottom: 40px; }
+.card-grid { display: grid; gap: 16px; margin-bottom: 24px; }
+.card { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 28px 24px; text-align: left; transition: all 0.2s; cursor: pointer; text-decoration: none; color: inherit; display: block; }
+.card:hover { background: rgba(255,255,255,0.14); transform: translateY(-2px); }
+.card-icon { font-size: 32px; margin-bottom: 12px; }
+.card-title { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
+.card-desc { font-size: 13px; opacity: 0.6; line-height: 1.5; }
+.tip { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px 20px; font-size: 12px; opacity: 0.6; line-height: 1.8; text-align: left; }
+.tip strong { opacity: 0.9; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="logo">🎊</div>
+  <h1>扫码抽奖系统</h1>
+  <div class="subtitle">聚会 / 年会 / 课堂演示 · 开箱即用</div>
+
+  <div class="card-grid">
+    <a href="admin.html" class="card">
+      <div class="card-icon">🛠️</div>
+      <div class="card-title">管理员后台</div>
+      <div class="card-desc">设置活动信息、配置奖项、管理参与者、生成入场二维码</div>
+    </a>
+    <a href="lottery.html" class="card">
+      <div class="card-icon">🎰</div>
+      <div class="card-title">大屏抽奖端</div>
+      <div class="card-desc">大屏幕展示抽奖过程，滚动动画 + 纸屑特效，投屏使用</div>
+    </a>
+  </div>
+
+  <div class="tip">
+    <strong>使用说明：</strong><br>
+    1. 打开「管理员后台」填写活动信息并保存<br>
+    2. 切换到「入场二维码」页，手机扫码即可签到<br>
+    3. 打开「大屏抽奖端」投屏，开始抽奖<br>
+    <br>
+    💡 建议演示方式：电脑打开管理后台，同时另开标签页模拟签到；大屏端可投影展示。
+  </div>
+</div>
+</body>
+</html>
