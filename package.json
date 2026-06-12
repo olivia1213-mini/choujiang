@@ -1,0 +1,13 @@
+{
+  "name": "lottery-system",
+  "version": "2.0.0",
+  "description": "扫码抽奖系统 - 跨设备实时同步版",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0"
+  }
+}
