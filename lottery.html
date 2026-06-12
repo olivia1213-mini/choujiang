@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大屏抽奖 - 扫码抽奖系统</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --purple: #534AB7; --purple-light: #EEEDFE; --purple-mid: #7F77DD;
+  --blue: #185FA5; --amber: #854F0B; --green: #3B6D11;
+  --red: #A32D2D; --text: #2C2C2A;
+  --border: rgba(0,0,0,0.12);
+}
+body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: linear-gradient(135deg, #1a0533 0%, #2d1b69 40%, #1a0533 100%); color: #fff; min-height: 100vh; overflow: hidden; }
+.header { display: flex; align-items: center; justify-content: space-between; padding: 16px 32px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.header-left { display: flex; align-items: center; gap: 14px; }
+.event-name { font-size: 20px; font-weight: 600; }
+.event-sub { font-size: 12px; opacity: 0.6; }
+.header-right { font-size: 13px; opacity: 0.7; display: flex; align-items: center; gap: 10px; }
+.server-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.server-dot.on { background: #10b981; }
+.server-dot.off { background: #6b7280; }
+.prize-selector { display: flex; justify-content: center; gap: 12px; padding: 18px 32px; flex-wrap: wrap; }
+.prize-btn { padding: 10px 22px; border: 2px solid rgba(255,255,255,0.25); border-radius: 30px; background: transparent; color: #fff; font-size: 14px; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+.prize-btn:hover, .prize-btn.active { background: var(--purple-mid); border-color: var(--purple-mid); }
+.prize-btn.won { opacity: 0.7; }
+.prize-btn.review-active { background: #f59e0b; border-color: #f59e0b; opacity: 1; }
+.lottery-stage { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 55vh; padding: 20px; }
+.slot-display { width: 480px; min-height: 140px; background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.2); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-weight: 700; letter-spacing: 6px; margin-bottom: 30px; transition: all 0.3s; flex-direction: row; flex-wrap: wrap; gap: 12px; padding: 20px; }
+.slot-display.rolling { border-color: var(--purple-mid); box-shadow: 0 0 40px rgba(127,119,221,0.4); }
+.slot-display.stopped { border-color: #f59e0b; box-shadow: 0 0 60px rgba(245,158,11,0.5); }
+.slot-name { text-align: center; line-height: 1.2; }
+.slot-phone { font-size: 22px; color: #fbbf24; letter-spacing: 3px; margin-top: 10px; font-weight: 400; }
+.slot-person { display: flex; flex-direction: column; align-items: center; padding: 6px 18px; }
+.glow { animation: glow 1.5s ease-in-out infinite alternate; }
+@keyframes glow { from { text-shadow: 0 0 10px rgba(255,255,255,0.3); } to { text-shadow: 0 0 30px rgba(255,255,255,0.8), 0 0 60px rgba(127,119,221,0.5); } }
+.btn-row { display: flex; gap: 24px; justify-content: center; }
+.lot-btn { padding: 16px 40px; font-size: 20px; font-weight: 600; border: none; border-radius: 50px; cursor: pointer; transition: all 0.2s; font-family: inherit; color: #fff; }
+.lot-btn:hover { transform: translateY(-2px); }
+.lot-btn:active { transform: translateY(0); }
+.lot-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+.lot-btn.manual { background: linear-gradient(135deg, var(--purple-mid), #a78bfa); box-shadow: 0 6px 25px rgba(127,119,221,0.4); }
+.lot-btn.manual:hover { box-shadow: 0 10px 35px rgba(127,119,221,0.6); }
+.lot-btn.random { background: linear-gradient(135deg, var(--blue), #3b82f6); box-shadow: 0 6px 25px rgba(24,95,165,0.4); }
+.lot-btn.random:hover { box-shadow: 0 10px 35px rgba(24,95,165,0.6); }
+.lot-btn.rolling { background: linear-gradient(135deg, #f59e0b, #f97316) !important; box-shadow: 0 6px 25px rgba(245,158,11,0.5); }
+.winners-row { position: relative; z-index: 1; display: flex; justify-content: center; gap: 20px; margin-top: 20px; flex-wrap: wrap; }
+.winner-card { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 16px 24px; text-align: center; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+@keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.w-prize { font-size: 16px; font-weight: 600; color: #fbbf24; }
+.bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 52px; background: rgba(0,0,0,0.3); border-top: 1px solid rgba(255,255,255,0.1); overflow: hidden; }
+.scroll-track { display: flex; gap: 16px; padding: 12px 20px; width: max-content; animation: scroll 60s linear infinite; }
+.p-chip { padding: 4px 14px; background: rgba(255,255,255,0.1); border-radius: 14px; font-size: 12px; white-space: nowrap; }
+.p-chip.won { background: rgba(245,158,11,0.2); color: #fbbf24; }
+@keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.history-toggle { position: fixed; top: 80px; right: 10px; width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.4); color: #fff; font-size: 16px; cursor: pointer; z-index: 10; }
+.history-panel { position: fixed; top: 0; right: 0; width: 280px; height: 100vh; background: rgba(0,0,0,0.9); border-left: 1px solid rgba(255,255,255,0.1); padding: 20px; overflow-y: auto; z-index: 9; transform: translateX(100%); transition: transform 0.3s; }
+.history-panel.show { transform: translateX(0); }
+.undo-btn { padding: 8px 16px; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; background: transparent; color: #f59e0b; font-size: 12px; cursor: pointer; font-family: inherit; }
+.result-history-item { padding: 10px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.result-history-item .rh-prize { font-size: 12px; color: var(--purple-mid); font-weight: 500; }
+.result-history-item .rh-names { font-size: 13px; margin-top: 4px; }
+#confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: rgba(255,255,255,0.5); font-size: 16px; }
+</style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+
+<button class="history-toggle" onclick="toggleHistory()" title="抽奖历史">📋</button>
+<div class="history-panel" id="history-panel">
+  <div style="font-size:16px;font-weight:500;margin-bottom:16px;">抽奖历史</div>
+  <div id="history-list"><div style="font-size:12px;opacity:0.5;">暂无记录</div></div>
+  <button class="undo-btn" onclick="undoLast()" style="margin-top:16px;width:100%;">↩ 撤销本轮</button>
+</div>
+
+<div class="empty-state" id="empty-state">
+  <div style="font-size:64px;margin-bottom:16px;">🎰</div>
+  <div>请从管理员后台打开此页面</div>
+  <div style="font-size:12px;opacity:0.5;margin-top:8px;">或使用二维码扫描进入</div>
+</div>
+
+<div id="main-ui" style="display:none;">
+  <div class="header">
+    <div class="header-left">
+      <div>
+        <div class="event-name" id="event-name">扫码抽奖系统</div>
+        <div class="event-sub" id="event-sub">等待活动开始</div>
+      </div>
+    </div>
+    <div class="header-right" id="header-right">
+      <span class="server-dot off" id="srv-dot"></span>
+      <span id="pool-count">等待数据加载...</span>
+    </div>
+  </div>
+
+  <div class="prize-selector" id="prize-selector">
+    <div style="font-size:13px;opacity:0.6;width:100%;text-align:center;">正在加载奖项...</div>
+  </div>
+
+  <div class="lottery-stage">
+    <div class="slot-display" id="slot-display">
+      <div style="font-size:18px;opacity:0.5;">等待抽奖</div>
+    </div>
+    <div class="btn-row">
+      <button class="lot-btn manual" id="btn-manual" onclick="manualDraw()" disabled>
+        <span id="btn-manual-text">手动抽奖</span>
+      </button>
+      <button class="lot-btn random" id="btn-random" onclick="randomDraw()" disabled>
+        <span id="btn-random-text">随机抽奖</span>
+      </button>
+    </div>
+    <div class="winners-row" id="winners-row"></div>
+  </div>
+
+  <div class="bottom-bar">
+    <div class="scroll-track" id="scroll-inner">
+      <div class="p-chip">等待参会者扫码签到...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============= 全局状态 =============
+var allParticipants = [];
+var allResults = [];
+var allPrizes = [];
+var allSetup = null;
+var HAS_SERVER = false;
+var currentPrize = null;
+var isRolling = false;
+var rollTimer = null;
+var rollTimer_random = null;
+var rollSpeed = 30;
+var wonThisRound = [];
+var isReviewMode = false;
+
+// ============= 服务器 API =============
+function srvGet(path) {
+  return new Promise(function(resolve, reject) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', path);
+    xhr.timeout = 5000;
+    xhr.onload = function() {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try { resolve(JSON.parse(xhr.responseText)); } catch(e) { resolve(xhr.responseText); }
+      } else { reject(); }
+    };
+    xhr.onerror = function() { reject(); };
+    xhr.ontimeout = function() { reject(); };
+    xhr.send();
+  });
+}
+
+function srvPost(path, data) {
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', path);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.timeout = 5000;
+  xhr.send(data ? JSON.stringify(data) : undefined);
+}
+
+function srvDelete(path) {
+  var xhr = new XMLHttpRequest();
+  xhr.open('DELETE', path);
+  xhr.timeout = 5000;
+  xhr.send();
+}
+
+// ============= SSE 实时连接 =============
+function connectSSE() {
+  if (!HAS_SERVER) return;
+  try {
+    var es = new EventSource('/api/stream');
+
+    es.addEventListener('participants', function(e) {
+      try {
+        allParticipants = JSON.parse(e.data);
+        localStorage.setItem('lottery_participants', JSON.stringify(allParticipants));
+        refreshUI();
+      } catch(ex) {}
+    });
+
+    es.addEventListener('results', function(e) {
+      try {
+        allResults = JSON.parse(e.data);
+        localStorage.setItem('lottery_results', JSON.stringify(allResults));
+        refreshUI();
+      } catch(ex) {}
+    });
+
+    es.addEventListener('reset', function() {
+      allParticipants = [];
+      allResults = [];
+      allSetup = null;
+      localStorage.removeItem('lottery_participants');
+      localStorage.removeItem('lottery_results');
+      localStorage.removeItem('lottery_setup');
+      refreshUI();
+      updateStartBtn();
+    });
+
+    es.addEventListener('data', function(e) {
+      try {
+        var d = JSON.parse(e.data);
+        if (d.participants !== undefined) { allParticipants = d.participants; localStorage.setItem('lottery_participants', JSON.stringify(d.participants)); }
+        if (d.results !== undefined) { allResults = d.results; localStorage.setItem('lottery_results', JSON.stringify(d.results)); }
+        if (d.setup !== undefined) allSetup = d.setup;
+        if (d.prizes !== undefined) allPrizes = d.prizes;
+        refreshUI();
+        updateStartBtn();
+      } catch(ex) {}
+    });
+
+    es.onerror = function() {
+      setTimeout(function() { if (HAS_SERVER) connectSSE(); }, 5000);
+    };
+  } catch(e) {}
+}
+
+// ============= 数据加载 =============
+function loadData() {
+  var parts = [];
+  try { parts = JSON.parse(localStorage.getItem('lottery_participants')) || []; } catch(e) {}
+  allParticipants = parts;
+
+  var results = [];
+  try { results = JSON.parse(localStorage.getItem('lottery_results')) || []; } catch(e) {}
+  allResults = results;
+}
+
+// ============= 获奖计算 =============
+function getEligible() {
+  var wonPhones = new Set((allResults || []).flatMap(function(r) { return r.winnerPhones || []; }));
+  return (allParticipants || []).filter(function(p) { return !wonPhones.has(p.phone); });
+}
+
+// ============= UI 更新 =============
+function refreshUI() {
+  if (allSetup && allSetup.name) {
+    document.getElementById('event-name').textContent = allSetup.name;
+    document.getElementById('event-sub').textContent = (allSetup.desc || '') + '  |  ' + (allSetup.org || '');
+  }
+  renderPrizeButtons();
+  renderBottomBar();
+  renderHistory();
+  updatePoolCount();
+}
+
+function updatePoolCount() {
+  var eligible = getEligible();
+  document.getElementById('pool-count').textContent =
+    '抽奖池共 ' + allParticipants.length + ' 人，可抽 ' + eligible.length + ' 人';
+}
+
+function renderPrizeButtons() {
+  var container = document.getElementById('prize-selector');
+  var wonPrizeIds = new Set((allResults || []).map(function(r) { return r.prizeId; }));
+  container.innerHTML = allPrizes.map(function(p) {
+    var won = wonPrizeIds.has(p.id);
+    var isActive = currentPrize && currentPrize.id === p.id;
+    var cls = 'prize-btn';
+    if (isActive) cls += won ? ' review-active' : ' active';
+    if (won) cls += ' won';
+    return '<button class="' + cls + '" onclick="selectPrize(' + p.id + ')">' +
+      (won ? '✅ ' : '') + p.name + ' (' + p.count + '人)</button>';
+  }).join('');
+  if (!currentPrize && allPrizes.length) selectPrize(allPrizes[0].id, true);
+}
+
+function renderBottomBar() {
+  var wonPhones = new Set((allResults || []).flatMap(function(r) { return r.winnerPhones || []; }));
+  var chips = allParticipants.map(function(p) {
+    return '<div class="p-chip' + (wonPhones.has(p.phone) ? ' won' : '') + '">' +
+      (wonPhones.has(p.phone) ? '🏆 ' : '') + escHtml(p.name) + '</div>';
+  });
+  if (!chips.length) chips.push('<div class="p-chip">等待参会者扫码签到...</div>');
+  document.getElementById('scroll-inner').innerHTML = chips.concat(chips).join('');
+}
+
+function renderHistory() {
+  var container = document.getElementById('history-list');
+  if (!allResults.length) {
+    container.innerHTML = '<div style="font-size:12px;opacity:0.5;">暂无记录</div>';
+    return;
+  }
+  container.innerHTML = allResults.slice().reverse().map(function(r) {
+    return '<div class="result-history-item">' +
+      '<div class="rh-prize">' + escHtml(r.prizeName) + '</div>' +
+      '<div class="rh-names">🏆 ' + escHtml((r.winners || []).join('、')) + '</div>' +
+      '<div style="font-size:11px;opacity:0.4;margin-top:4px;">' + escHtml(r.time) + '</div>' +
+      '</div>';
+  }).join('');
+}
+
+function escHtml(s) { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ============= 奖项选择 =============
+function selectPrize(id, quiet) {
+  if (isRolling) return;
+  var prize = allPrizes.find(function(p) { return p.id === id; });
+  if (!prize) return;
+  currentPrize = prize;
+  isReviewMode = false;
+  document.getElementById('winners-row').innerHTML = '';
+  document.getElementById('slot-display').classList.remove('stopped');
+  document.getElementById('slot-display').innerHTML = '<div style="font-size:18px;opacity:0.5;">等待抽奖</div>';
+
+  // 检查是否已抽过
+  var pastResult = (allResults || []).find(function(r) { return r.prizeId === id; });
+  if (pastResult) {
+    // 回顾模式：显示历史中奖信息
+    isReviewMode = true;
+    document.getElementById('slot-display').classList.add('stopped');
+    var winners = pastResult.winners || [];
+    var phones = pastResult.winnerPhones || [];
+    var count = winners.length;
+    var nameSize = count === 1 ? 48 : (count <= 3 ? 32 : 24);
+    var phoneSize = count === 1 ? 22 : (count <= 3 ? 16 : 14);
+    document.getElementById('slot-display').innerHTML = winners.map(function(name, i) {
+      var maskedPhone = phones[i] ? phones[i].slice(0, 3) + '****' + phones[i].slice(-4) : '';
+      return '<div class="slot-person">' +
+        '<div class="slot-name glow" style="font-size:' + nameSize + 'px">' + escHtml(name) + '</div>' +
+        '<div class="slot-phone" style="font-size:' + phoneSize + 'px;margin-top:' + (phoneSize < 16 ? 4 : 10) + 'px">' + escHtml(maskedPhone) + '</div>' +
+        '</div>';
+    }).join('');
+    document.getElementById('winners-row').innerHTML = winners.map(function() {
+      return '<div class="winner-card"><div class="w-prize">' + escHtml(prize.name) + '</div></div>';
+    }).join('');
+  }
+
+  if (!quiet) renderPrizeButtons();
+  updateStartBtn();
+}
+
+function updateStartBtn() {
+  if (!currentPrize) {
+    document.getElementById('btn-manual').disabled = true;
+    document.getElementById('btn-random').disabled = true;
+    return;
+  }
+  if (isReviewMode) {
+    document.getElementById('btn-manual').disabled = true;
+    document.getElementById('btn-random').disabled = true;
+    return;
+  }
+  var eligible = getEligible();
+  var can = eligible.length > 0 && currentPrize.count <= eligible.length;
+  document.getElementById('btn-manual').disabled = !can;
+  document.getElementById('btn-random').disabled = !can;
+}
+
+// ============= 抽奖逻辑 =============
+function manualDraw() {
+  if (isRolling) return stopDraw();
+  startDraw('manual');
+}
+
+function randomDraw() {
+  if (isRolling) return;
+  startDraw('random');
+}
+
+function startDraw(mode) {
+  var eligible = getEligible();
+  if (!eligible.length || !currentPrize) return;
+
+  isRolling = true;
+  wonThisRound = [];
+  var btnManual = document.getElementById('btn-manual');
+  var btnRandom = document.getElementById('btn-random');
+  btnManual.disabled = true;
+  btnRandom.disabled = true;
+  btnManual.classList.add('rolling');
+  btnRandom.classList.add('rolling');
+  document.getElementById('btn-manual-text').textContent = '停止';
+  document.getElementById('btn-random-text').textContent = '抽奖中...';
+  document.getElementById('winners-row').innerHTML = '';
+  document.getElementById('slot-display').classList.add('rolling');
+  rollSpeed = 30;
+  roll();
+
+  // 随机抽奖：3~6 秒后自动停止
+  if (mode === 'random') {
+    var autoDelay = 3000 + Math.floor(Math.random() * 3000);
+    rollTimer_random = setTimeout(function() { stopDraw(); }, autoDelay);
+  }
+}
+
+function roll() {
+  if (!isRolling) return;
+  var eligible = getEligible();
+  var randomIdx = Math.floor(Math.random() * eligible.length);
+  var name = eligible[randomIdx] ? eligible[randomIdx].name : '---';
+  document.getElementById('slot-display').innerHTML = '<div class="slot-name">' + escHtml(name) + '</div>';
+  rollSpeed = Math.max(60, rollSpeed + 3);
+  rollTimer = setTimeout(roll, rollSpeed);
+}
+
+function stopDraw() {
+  isRolling = false;
+  isReviewMode = false;
+  clearTimeout(rollTimer);
+  clearTimeout(rollTimer_random);
+  document.getElementById('slot-display').classList.remove('rolling');
+  document.getElementById('slot-display').classList.add('stopped');
+  var btnManual = document.getElementById('btn-manual');
+  var btnRandom = document.getElementById('btn-random');
+  btnManual.classList.remove('rolling');
+  btnRandom.classList.remove('rolling');
+  document.getElementById('btn-manual-text').textContent = '手动抽奖';
+  document.getElementById('btn-random-text').textContent = '随机抽奖';
+
+  var eligible = getEligible();
+  var count = Math.min(currentPrize.count, eligible.length);
+  var shuffled = [].slice.call(eligible).sort(function() { return Math.random() - 0.5; });
+  wonThisRound = shuffled.slice(0, count);
+
+  // 中央大屏：显示所有中奖人姓名+手机号
+  var nameSize = wonThisRound.length === 1 ? 48 : (wonThisRound.length <= 3 ? 32 : 24);
+  var phoneSize = wonThisRound.length === 1 ? 22 : (wonThisRound.length <= 3 ? 16 : 14);
+  document.getElementById('slot-display').innerHTML = wonThisRound.map(function(p) {
+    var maskedPhone = p.phone ? p.phone.slice(0, 3) + '****' + p.phone.slice(-4) : '';
+    return '<div class="slot-person">' +
+      '<div class="slot-name glow" style="font-size:' + nameSize + 'px">' + escHtml(p.name) + '</div>' +
+      '<div class="slot-phone" style="font-size:' + phoneSize + 'px;margin-top:' + (phoneSize < 16 ? 4 : 10) + 'px">' + escHtml(maskedPhone) + '</div>' +
+      '</div>';
+  }).join('');
+
+  document.getElementById('winners-row').innerHTML = wonThisRound.map(function(p, i) {
+    return '<div class="winner-card" style="animation-delay:' + (i * 0.15) + 's">' +
+      '<div class="w-prize">' + escHtml(currentPrize.name) + '</div>' +
+      '</div>';
+  }).join('');
+
+  var result = {
+    prizeId: currentPrize.id,
+    prizeName: currentPrize.name,
+    prizeDesc: currentPrize.desc,
+    winners: wonThisRound.map(function(p) { return p.name; }),
+    winnerPhones: wonThisRound.map(function(p) { return p.phone; }),
+    time: new Date().toLocaleString()
+  };
+  allResults.push(result);
+  localStorage.setItem('lottery_results', JSON.stringify(allResults));
+
+  if (HAS_SERVER) { srvPost('/api/results', result); }
+
+  renderPrizeButtons();
+  renderBottomBar();
+  renderHistory();
+  updatePoolCount();
+  startConfetti();
+  updateStartBtn();
+}
+
+function undoLast() {
+  if (!allResults.length) return;
+  allResults.pop();
+  localStorage.setItem('lottery_results', JSON.stringify(allResults));
+  isReviewMode = false;
+
+  if (HAS_SERVER) {
+    srvDelete('/api/results/last');
+  }
+
+  wonThisRound = [];
+  document.getElementById('winners-row').innerHTML = '';
+  document.getElementById('slot-display').innerHTML = '<div style="font-size:18px;opacity:0.5;">等待抽奖</div>';
+  document.getElementById('slot-display').classList.remove('stopped');
+  renderPrizeButtons();
+  renderBottomBar();
+  renderHistory();
+  updatePoolCount();
+  updateStartBtn();
+}
+
+function toggleHistory() {
+  document.getElementById('history-panel').classList.toggle('show');
+}
+
+// ============= 纸屑动画 =============
+function startConfetti() {
+  var canvas = document.getElementById('confetti-canvas');
+  var ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  var particles = [];
+  var colors = ['#f59e0b','#ef4444','#10b981','#8b5cf6','#ec4899','#f97316','#06b6d4'];
+
+  for (var i = 0; i < 80; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: -20,
+      w: Math.random() * 8 + 3,
+      h: Math.random() * 4 + 2,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vy: Math.random() * 3 + 2,
+      vx: (Math.random() - 0.5) * 3,
+      r: Math.random() * Math.PI * 2,
+      rs: (Math.random() - 0.5) * 0.2
+    });
+  }
+
+  var frame = 0;
+  function draw() {
+    frame++;
+    if (frame > 150) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(function(p) {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.03;
+      p.r += p.rs;
+      if (p.y > canvas.height + 50) p.y = -20;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.r);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// ============= 初始化 =============
+(function init() {
+  // 先从 localStorage 加载缓存
+  loadData();
+  try {
+    allPrizes = JSON.parse(localStorage.getItem('lottery_prizes')) || [
+      { id: 1, name: '一等奖', desc: '丰厚奖品', count: 1 },
+      { id: 2, name: '二等奖', desc: '精美礼品', count: 2 },
+      { id: 3, name: '三等奖', desc: '纪念品', count: 3 }
+    ];
+  } catch(e) {
+    allPrizes = [{ id: 1, name: '一等奖', desc: '丰厚奖品', count: 1 }];
+  }
+  try { allSetup = JSON.parse(localStorage.getItem('lottery_setup')); } catch(e) {}
+
+  // 检测服务器
+  srvGet('/api/health').then(function() {
+    HAS_SERVER = true;
+    document.getElementById('srv-dot').className = 'server-dot on';
+
+    // 从服务器加载最新数据
+    return srvGet('/api/data');
+  }).then(function(d) {
+    if (d && d.participants) { allParticipants = d.participants; localStorage.setItem('lottery_participants', JSON.stringify(d.participants)); }
+    if (d && d.results) { allResults = d.results; localStorage.setItem('lottery_results', JSON.stringify(d.results)); }
+    if (d && d.setup) { allSetup = d.setup; localStorage.setItem('lottery_setup', JSON.stringify(d.setup)); }
+    if (d && d.prizes) { allPrizes = d.prizes; localStorage.setItem('lottery_prizes', JSON.stringify(d.prizes)); }
+  }).catch(function() {
+    HAS_SERVER = false;
+    document.getElementById('srv-dot').className = 'server-dot off';
+  }).then(function() {
+    // 显示界面
+    if (allSetup && allSetup.name) {
+      document.getElementById('empty-state').style.display = 'none';
+      document.getElementById('main-ui').style.display = 'block';
+      refreshUI();
+      updateStartBtn();
+
+      // 连接 SSE（在线模式）
+      if (HAS_SERVER) connectSSE();
+
+      // 轮询（离线模式或兜底）
+      setInterval(function() {
+        if (HAS_SERVER) {
+          srvGet('/api/data').then(function(d) {
+            var changed = false;
+            if (d && d.participants) {
+              var cur = JSON.stringify(d.participants);
+              if (localStorage.getItem('lottery_participants') !== cur) {
+                allParticipants = d.participants;
+                localStorage.setItem('lottery_participants', cur);
+                changed = true;
+              }
+            }
+            if (d && d.results) {
+              var cur = JSON.stringify(d.results);
+              if (localStorage.getItem('lottery_results') !== cur) {
+                allResults = d.results;
+                localStorage.setItem('lottery_results', cur);
+                changed = true;
+              }
+            }
+            if (changed) { refreshUI(); updateStartBtn(); }
+          }).catch(function(){});
+        } else {
+          loadData();
+          refreshUI();
+          updateStartBtn();
+        }
+      }, HAS_SERVER ? 3000 : 5000);
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
