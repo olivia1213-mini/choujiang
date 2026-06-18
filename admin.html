@@ -8,109 +8,172 @@
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --purple: #6C5CE7; --purple-light: #F3F0FF; --purple-mid: #A29BFE;
-  --blue: #2D7DD2; --blue-light: #E8F4FD;
-  --green: #20A869; --green-light: #E6F9F1;
-  --amber: #F0A040; --amber-light: #FFF5EB;
-  --red: #E5484D; --red-light: #FFF0F0;
-  --gray: #444441; --gray-light: #F7F7F5; --gray-mid: #9CA3AF;
-  --text: #1F2937; --text-sec: #6B7280; --text-hint: #9CA3AF;
-  --border: #E5E7EB; --radius: 14px; --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
-  --shadow-lg: 0 8px 30px rgba(0,0,0,0.08);
+  --gold: #b08a3e; --gold-light: rgba(176,138,62,0.10); --gold-mid: #c19a4a;
+  --red: #c4603a; --red-light: rgba(180,85,50,0.10);
+  --green: #2d8a5e; --green-light: rgba(45,138,94,0.10);
+  --amber: #b08a3e; --amber-light: rgba(176,138,62,0.10);
+  --danger: #c0392b; --danger-light: rgba(192,57,43,0.10);
+  --text: rgba(44,36,22,0.92); --text-sec: rgba(44,36,22,0.58); --text-hint: rgba(44,36,22,0.38);
+  --border: rgba(176,138,62,0.14); --radius: 14px; --shadow: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.10);
+  --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+  --card-bg: rgba(255,252,248,0.65); --card-bg-hover: rgba(255,252,248,0.82);
+  --input-bg: rgba(245,240,232,0.60);
 }
-html { background: #f0f2f5; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: linear-gradient(160deg, #F0F2F8 0%, #E8EDF5 40%, #F5F3FA 100%); color: var(--text); font-size: 14px; line-height: 1.6; min-height: 100vh; }
-.header { background: rgba(255,255,255,0.9); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid rgba(0,0,0,0.06); padding: 0 28px; display: flex; align-items: center; gap: 28px; height: 58px; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 3px rgba(0,0,0,0.03); }
-.header h1 { font-size: 17px; font-weight: 700; color: var(--purple); display: flex; align-items: center; gap: 10px; white-space: nowrap; letter-spacing: 0.3px; }
-.header h1::before { content: ''; display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--purple-mid)); }
-.server-indicator { font-size: 11px; padding: 4px 12px; border-radius: 20px; display: flex; align-items: center; gap: 5px; font-weight: 500; }
-.server-ok { background: var(--green-light); color: var(--green); }
-.server-off { background: var(--red-light); color: var(--red); }
+html { background: #f0e8d8; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: linear-gradient(180deg, #e8dcc8 0%, #f0e8d8 35%, #f5efe5 70%, #faf7f2 100%);
+  color: #2c2416; font-size: 16px; line-height: 1.6; min-height: 100vh;
+  position: relative; overflow-x: hidden;
+}
+
+canvas#particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+.bg-glow { position: fixed; border-radius: 50%; filter: blur(100px); pointer-events: none; z-index: 0; }
+.bg-glow-top { width: 900px; height: 600px; background: radial-gradient(circle, rgba(210,160,90,0.18) 0%, rgba(190,140,80,0.06) 35%, transparent 65%); top: -200px; left: 50%; transform: translateX(-50%); }
+.bg-glow-bot { width: 650px; height: 480px; background: radial-gradient(circle, rgba(200,155,90,0.10) 0%, rgba(180,140,80,0.04) 35%, transparent 65%); bottom: -150px; left: 30%; }
+
+/* ===== 全局页面导航 ===== */
+.site-nav {
+  position: sticky; top: 0; z-index: 101;
+  background: rgba(245,240,232,0.88);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(176,138,62,0.10);
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+  padding: 0 12px; height: 44px;
+}
+.site-nav a {
+  display: inline-flex; align-items: center;
+  padding: 5px 14px; border-radius: 20px;
+  color: rgba(44,36,22,0.55); text-decoration: none;
+  font-size: 17px; font-weight: 500; transition: all 0.2s;
+  white-space: nowrap; letter-spacing: 1px;
+  border: 1px solid transparent;
+}
+.site-nav a:hover { color: #b08a3e; background: rgba(176,138,62,0.06); border-color: rgba(176,138,62,0.15); }
+.site-nav a.current { color: #b08a3e; background: rgba(176,138,62,0.10); border-color: rgba(176,138,62,0.20); font-weight: 600; }
+@media (max-width: 500px) {
+  .site-nav { gap: 2px; padding: 0 5px; height: 42px; }
+  .site-nav a { padding: 5px 10px; font-size: 14px; letter-spacing: 0; }
+}
+
+.header {
+  position: sticky; top: 44px; z-index: 100;
+  background: rgba(245,240,232,0.88); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(176,138,62,0.10); padding: 0 28px;
+  display: flex; align-items: center; gap: 28px; height: 58px;
+}
+.header h1 { font-size: 20px; font-weight: 700; color: #8b6520; display: flex; align-items: center; gap: 10px; white-space: nowrap; letter-spacing: 1px; }
+.header h1::before { content: ''; display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: linear-gradient(135deg, #b08a3e, #8b6520); }
+
+.server-indicator { font-size: 13px; padding: 5px 14px; border-radius: 20px; display: flex; align-items: center; gap: 5px; font-weight: 500; }
+.server-ok { background: rgba(45,138,94,0.10); color: #2d8a5e; border: 1px solid rgba(45,138,94,0.18); }
+.server-off { background: rgba(44,36,22,0.05); color: var(--text-hint); border: 1px solid rgba(44,36,22,0.06); }
+
 .nav-tabs { display: flex; gap: 6px; flex: 1; }
-.nav-tab { padding: 7px 18px; border: none; background: transparent; border-radius: 8px; cursor: pointer; font-size: 13px; color: var(--text-sec); transition: all 0.2s ease; white-space: nowrap; font-weight: 500; position: relative; }
-.nav-tab:hover { background: rgba(108,92,231,0.06); color: var(--purple); }
-.nav-tab.active { background: var(--purple-light); color: var(--purple); font-weight: 600; }
-.main { max-width: 1000px; margin: 0 auto; padding: 28px; }
+.nav-tab { padding: 8px 20px; border: 1px solid transparent; background: transparent; border-radius: 8px; cursor: pointer; font-size: 15px; color: var(--text-sec); transition: all 0.2s ease; white-space: nowrap; font-weight: 500; font-family: inherit; }
+.nav-tab:hover { background: rgba(176,138,62,0.08); color: #b08a3e; border-color: rgba(176,138,62,0.15); }
+.nav-tab.active { background: rgba(176,138,62,0.10); color: #8b6520; font-weight: 600; border-color: rgba(176,138,62,0.20); }
+
+.main { max-width: 1000px; margin: 0 auto; padding: 28px; position: relative; z-index: 1; }
 .page { display: none; }
 .page.active { display: block; animation: fadeIn 0.25s ease; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-.card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; margin-bottom: 20px; box-shadow: var(--shadow); transition: box-shadow 0.25s, transform 0.25s; }
-.card:hover { box-shadow: var(--shadow-md); }
-.card-title { font-size: 15px; font-weight: 600; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid #F3F4F6; display: flex; align-items: center; gap: 10px; color: var(--text); }
-.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; box-shadow: 0 0 0 3px rgba(108,92,231,0.12); }
+
+.card {
+  background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 28px; margin-bottom: 20px;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  transition: border-color 0.25s, background 0.25s;
+}
+.card:hover { border-color: rgba(220,180,80,0.30); background: var(--card-bg-hover); }
+
+.card-title { font-size: 17px; font-weight: 600; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid rgba(176,138,62,0.10); display: flex; align-items: center; gap: 10px; color: var(--text); }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+
 .form-group { margin-bottom: 16px; }
-.form-group label { display: block; font-size: 12px; color: var(--text-sec); margin-bottom: 6px; font-weight: 600; letter-spacing: 0.3px; }
-.form-group input, .form-group textarea { width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 9px; font-size: 13px; font-family: inherit; outline: none; transition: all 0.2s; background: #FAFBFC; color: var(--text); }
-.form-group input:hover, .form-group textarea:hover { border-color: #D1D5DB; background: #fff; }
-.form-group input:focus, .form-group textarea:focus { border-color: var(--purple-mid); box-shadow: 0 0 0 3px rgba(108,92,231,0.1); background: #fff; }
+.form-group label { display: block; font-size: 14px; color: var(--text-sec); margin-bottom: 6px; font-weight: 600; letter-spacing: 0.3px; }
+.form-group input, .form-group textarea { width: 100%; padding: 12px 16px; border: 1.5px solid rgba(176,138,62,0.12); border-radius: 9px; font-size: 15px; font-family: inherit; outline: none; transition: all 0.2s; background: var(--input-bg); color: var(--text); }
+.form-group input:hover, .form-group textarea:hover { border-color: rgba(176,138,62,0.25); background: rgba(250,245,238,0.80); }
+.form-group input:focus, .form-group textarea:focus { border-color: #b08a3e; box-shadow: 0 0 0 3px rgba(176,138,62,0.10); background: rgba(250,245,238,0.85); }
 .form-group textarea { resize: vertical; min-height: 60px; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.btn { padding: 10px 22px; border-radius: 9px; border: none; font-size: 13px; font-family: inherit; cursor: pointer; transition: all 0.2s; background: linear-gradient(135deg, var(--purple), #5B4BD5); color: #fff; font-weight: 500; box-shadow: 0 2px 8px rgba(108,92,231,0.25); }
-.btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(108,92,231,0.35); }
+
+.btn { padding: 12px 24px; border-radius: 9px; border: none; font-size: 15px; font-family: inherit; cursor: pointer; transition: all 0.2s; background: linear-gradient(135deg, #b08a3e, #8b6520); color: #fff; font-weight: 500; box-shadow: 0 2px 8px rgba(139,101,32,0.20); }
+.btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(139,101,32,0.30); }
 .btn:active { transform: translateY(0); }
-.btn-outline { background: #fff; color: var(--purple); border: 1.5px solid var(--purple-mid); box-shadow: none; }
-.btn-outline:hover { background: var(--purple-light); box-shadow: 0 2px 8px rgba(108,92,231,0.15); }
-.btn-success { background: linear-gradient(135deg, var(--green), #1A9360); box-shadow: 0 2px 8px rgba(32,168,105,0.25); }
-.btn-success:hover { box-shadow: 0 4px 16px rgba(32,168,105,0.35); }
-.btn-danger { background: linear-gradient(135deg, var(--red), #D93D42); box-shadow: 0 2px 8px rgba(229,72,77,0.25); }
-.btn-danger:hover { box-shadow: 0 4px 16px rgba(229,72,77,0.35); }
-.btn-sm { padding: 6px 14px; font-size: 12px; border-radius: 7px; }
+.btn-outline { background: transparent; color: #8b6520; border: 1.5px solid rgba(176,138,62,0.35); box-shadow: none; }
+.btn-outline:hover { background: rgba(176,138,62,0.06); border-color: rgba(176,138,62,0.50); box-shadow: 0 2px 12px rgba(176,138,62,0.10); }
+.btn-success { background: linear-gradient(135deg, #2d8a5e, #1e6b45); box-shadow: 0 2px 8px rgba(45,138,94,0.20); }
+.btn-success:hover { box-shadow: 0 4px 16px rgba(45,138,94,0.30); }
+.btn-danger { background: linear-gradient(135deg, #c0392b, #9b2c2c); box-shadow: 0 2px 8px rgba(192,57,43,0.20); }
+.btn-danger:hover { box-shadow: 0 4px 16px rgba(192,57,43,0.30); }
+.btn-sm { padding: 8px 16px; font-size: 14px; border-radius: 7px; }
 .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
-.msg { font-size: 12px; margin-top: 10px; min-height: 20px; font-weight: 500; }
+.msg { font-size: 14px; margin-top: 10px; min-height: 20px; font-weight: 500; }
 .msg.ok { color: var(--green); }
-.msg.err { color: var(--red); }
-.alert { padding: 14px 18px; border-radius: 10px; font-size: 13px; margin-bottom: 18px; font-weight: 500; }
-.alert-info { background: var(--blue-light); color: var(--blue); border: 1px solid rgba(45,125,210,0.12); }
-.alert-success { background: var(--green-light); color: var(--green); border: 1px solid rgba(32,168,105,0.12); }
+.msg.err { color: var(--danger); }
+.alert { padding: 14px 18px; border-radius: 10px; font-size: 15px; margin-bottom: 18px; font-weight: 500; }
+.alert-info { background: rgba(176,138,62,0.06); color: #8b6520; border: 1px solid rgba(176,138,62,0.14); }
+.alert-success { background: rgba(45,138,94,0.06); color: #2d8a5e; border: 1px solid rgba(45,138,94,0.12); }
+
 .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
-.stat-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 16px; text-align: center; box-shadow: var(--shadow); transition: all 0.25s; position: relative; overflow: hidden; }
-.stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--purple), var(--purple-mid)); border-radius: 0 0 4px 4px; opacity: 0; transition: opacity 0.25s; }
+.stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 16px; text-align: center; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: all 0.25s; position: relative; overflow: hidden; }
+.stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #b08a3e, #8b6520); border-radius: 0 0 4px 4px; opacity: 0; transition: opacity 0.25s; }
 .stat-card:hover::before { opacity: 1; }
-.stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
-.stat-num { font-size: 30px; font-weight: 700; background: linear-gradient(135deg, var(--purple), var(--purple-mid)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-.stat-label { font-size: 12px; color: var(--text-hint); margin-top: 6px; font-weight: 500; }
+.stat-card:hover { transform: translateY(-3px); border-color: rgba(176,138,62,0.25); background: var(--card-bg-hover); }
+.stat-num { font-size: 36px; font-weight: 700; background: linear-gradient(135deg, #c19a4a, #8b6520); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.stat-label { font-size: 14px; color: var(--text-hint); margin-top: 6px; font-weight: 500; }
+
 .participant-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
-.participant-tag { padding: 8px 15px; background: linear-gradient(135deg, #EFF6FF, #E8F0FE); border: 1px solid rgba(59,130,246,0.12); border-radius: 24px; font-size: 13px; color: var(--blue); display: flex; align-items: center; gap: 5px; transition: all 0.2s; font-weight: 500; cursor: default; }
-.participant-tag:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(59,130,246,0.15); border-color: rgba(59,130,246,0.25); }
-.participant-phone { font-size: 11px; color: var(--text-hint); margin-left: 2px; font-weight: 400; }
+.participant-tag { padding: 10px 18px; background: rgba(176,138,62,0.06); border: 1px solid rgba(176,138,62,0.14); border-radius: 24px; font-size: 15px; color: #8b6520; display: flex; align-items: center; gap: 5px; transition: all 0.2s; font-weight: 500; cursor: default; }
+.participant-tag:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(176,138,62,0.10); border-color: rgba(176,138,62,0.25); }
+.participant-phone { font-size: 13px; color: var(--text-hint); margin-left: 2px; font-weight: 400; }
 .remove-btn { margin-left: 4px; cursor: pointer; opacity: 0.4; font-size: 15px; transition: all 0.2s; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; }
-.remove-btn:hover { opacity: 1; background: rgba(229,72,77,0.15); color: var(--red); }
-.empty-hint { font-size: 13px; color: var(--text-hint); padding: 36px 24px; text-align: center; width: 100%; background: var(--gray-light); border-radius: 10px; border: 1.5px dashed var(--border); letter-spacing: 0.3px; }
+.remove-btn:hover { opacity: 1; background: rgba(229,72,77,0.20); color: #E5484D; }
+
+.empty-hint { font-size: 15px; color: var(--text-hint); padding: 36px 24px; text-align: center; width: 100%; background: rgba(245,240,232,0.35); border-radius: 10px; border: 1.5px dashed rgba(176,138,62,0.12); letter-spacing: 0.3px; }
+
 .prize-list-wrap { display: flex; flex-direction: column; gap: 12px; }
-.prize-item { display: flex; align-items: stretch; gap: 0; background: #fff; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: all 0.25s; box-shadow: var(--shadow); position: relative; }
-.prize-item:hover { border-color: var(--purple-mid); box-shadow: 0 4px 20px rgba(108,92,231,0.1); transform: translateY(-1px); }
-.prize-badge { width: 44px; min-width: 44px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #fff; background: linear-gradient(135deg, var(--purple), var(--purple-mid)); letter-spacing: 0.5px; }
-.prize-badge.b2 { background: linear-gradient(135deg, #6366F1, #818CF8); }
-.prize-badge.b3 { background: linear-gradient(135deg, #3B82F6, #60A5FA); }
-.prize-badge.b4 { background: linear-gradient(135deg, #10B981, #34D399); }
-.prize-badge.b5 { background: linear-gradient(135deg, #F59E0B, #FBBF24); }
-.prize-badge.b6 { background: linear-gradient(135deg, #EF4444, #F87171); }
+.prize-item { display: flex; align-items: stretch; gap: 0; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: all 0.25s; position: relative; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.prize-item:hover { border-color: rgba(176,138,62,0.30); box-shadow: 0 4px 20px rgba(176,138,62,0.08); transform: translateY(-1px); }
+.prize-badge { width: 44px; min-width: 44px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #fff; background: linear-gradient(135deg, #b08a3e, #8b6520); letter-spacing: 0.5px; }
+.prize-badge.b2 { background: linear-gradient(135deg, #c19a4a, #a07a32); }
+.prize-badge.b3 { background: linear-gradient(135deg, #a88a4e, #8a6a38); }
+.prize-badge.b4 { background: linear-gradient(135deg, #2d8a5e, #1e6b45); }
+.prize-badge.b5 { background: linear-gradient(135deg, #d49726, #b8781e); }
+.prize-badge.b6 { background: linear-gradient(135deg, #c0392b, #9b2c2c); }
 .prize-fields { flex: 1; display: flex; gap: 0; padding: 10px 8px; align-items: center; }
 .prize-field { flex: 1; padding: 0 10px; display: flex; flex-direction: column; gap: 4px; }
 .prize-field:first-child { flex: 1.2; }
-.prize-field label { font-size: 11px; font-weight: 600; color: var(--text-hint); text-transform: none; letter-spacing: 0.5px; }
-.prize-field input { width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; background: #FAFBFC; transition: all 0.2s; color: var(--text); }
-.prize-field input:hover { border-color: #D1D5DB; }
-.prize-field input:focus { border-color: var(--purple-mid); box-shadow: 0 0 0 3px rgba(108,92,231,0.08); outline: none; background: #fff; }
+.prize-field label { font-size: 13px; font-weight: 600; color: var(--text-hint); text-transform: none; letter-spacing: 0.5px; }
+.prize-field input { width: 100%; padding: 10px 14px; border: 1.5px solid rgba(176,138,62,0.12); border-radius: 8px; font-size: 15px; font-family: inherit; background: var(--input-bg); transition: all 0.2s; color: var(--text); }
+.prize-field input:hover { border-color: rgba(176,138,62,0.25); }
+.prize-field input:focus { border-color: #b08a3e; box-shadow: 0 0 0 3px rgba(176,138,62,0.08); outline: none; background: rgba(250,245,238,0.80); }
 .prize-field-count { flex: 0 0 90px; min-width: 90px; }
 .prize-field-count input { text-align: center; font-weight: 600; }
-.prize-remove { width: 44px; min-width: 44px; border: none; background: transparent; color: var(--text-hint); font-size: 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; border-left: 1px solid var(--border); }
-.prize-remove:hover { background: var(--red-light); color: var(--red); }
-.prize-empty { padding: 24px; text-align: center; color: var(--text-hint); font-size: 13px; background: var(--gray-light); border-radius: 10px; border: 1.5px dashed var(--border); }
+.prize-remove { width: 44px; min-width: 44px; border: none; background: transparent; color: var(--text-hint); font-size: 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; border-left: 1px solid rgba(176,138,62,0.08); }
+.prize-remove:hover { background: rgba(192,57,43,0.10); color: #c0392b; }
+.prize-empty { padding: 24px; text-align: center; color: var(--text-hint); font-size: 15px; background: rgba(245,240,232,0.35); border-radius: 10px; border: 1.5px dashed rgba(176,138,62,0.12); }
+
 .qr-preview { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-.qr-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; text-align: center; box-shadow: var(--shadow); }
-.qr-card .qr-title { font-size: 15px; font-weight: 600; margin-bottom: 14px; color: var(--text); }
-.qr-card .qr-url { font-size: 11px; color: var(--text-hint); word-break: break-all; margin-top: 10px; background: var(--gray-light); padding: 8px 12px; border-radius: 7px; }
-.result-item { background: linear-gradient(135deg, #F8F7FF, #F3F0FF); border: 1px solid rgba(108,92,231,0.1); border-radius: 12px; padding: 18px 20px; margin-bottom: 14px; transition: all 0.2s; position: relative; overflow: hidden; }
-.result-item::after { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: linear-gradient(180deg, var(--purple), var(--purple-mid)); border-radius: 0 3px 3px 0; }
-.result-item:hover { box-shadow: 0 4px 16px rgba(108,92,231,0.1); transform: translateX(2px); }
-.result-item .ri-prize { font-size: 14px; font-weight: 600; color: var(--purple); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
-.result-item .ri-prize::before { content: '🏆'; font-size: 16px; }
-.result-item .ri-names { font-size: 13px; color: var(--text-sec); }
-.result-item .ri-time { font-size: 11px; color: var(--text-hint); margin-top: 6px; }
-.setup-divider { border-top: 2px solid #F3F0FF; margin: 20px 0 4px; padding-top: 20px; }
-.setup-divider-title { font-size: 14px; font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; color: var(--text); }
+.qr-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; text-align: center; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.qr-card .qr-title { font-size: 17px; font-weight: 600; margin-bottom: 14px; color: var(--text); }
+.qr-card .qr-url { font-size: 13px; color: var(--text-hint); word-break: break-all; margin-top: 10px; background: rgba(245,240,232,0.45); padding: 8px 12px; border-radius: 7px; border: 1px solid rgba(176,138,62,0.06); }
+
+.result-item { background: rgba(176,138,62,0.04); border: 1px solid rgba(176,138,62,0.12); border-radius: 12px; padding: 18px 20px; margin-bottom: 14px; transition: all 0.2s; position: relative; overflow: hidden; }
+.result-item::after { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: linear-gradient(180deg, #b08a3e, #8b6520); border-radius: 0 3px 3px 0; }
+.result-item:hover { box-shadow: 0 4px 16px rgba(176,138,62,0.08); transform: translateX(2px); background: rgba(176,138,62,0.07); }
+.result-item .ri-prize { font-size: 16px; font-weight: 600; color: #8b6520; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.result-item .ri-prize::before { content: '🏆'; font-size: 18px; }
+.result-item .ri-names { font-size: 15px; color: var(--text-sec); }
+.result-item .ri-time { font-size: 13px; color: var(--text-hint); margin-top: 6px; }
+
+.setup-divider { border-top: 2px solid rgba(176,138,62,0.08); margin: 20px 0 4px; padding-top: 20px; }
+.setup-divider-title { font-size: 16px; font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; color: var(--text); }
+
 /* ===== 响应式 ===== */
 @media (max-width: 768px) {
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
@@ -124,6 +187,17 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft
 </style>
 </head>
 <body>
+
+<canvas id="particles"></canvas>
+<div class="bg-glow bg-glow-top"></div>
+<div class="bg-glow bg-glow-bot"></div>
+
+<nav class="site-nav">
+  <a href="index.html">🏠 首页</a>
+  <a href="join.html">✍️ 签到</a>
+  <a href="lottery.html">🎰 抽奖大屏</a>
+  <a href="admin.html" class="current">⚙️ 管理后台</a>
+</nav>
 
 <div class="header">
   <h1>扫码抽奖系统</h1>
@@ -143,7 +217,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft
   <!-- 活动设置 -->
   <div class="page active" id="page-setup">
     <div class="card">
-      <div class="card-title"><span class="dot" style="background:var(--purple)"></span>活动基本信息</div>
+      <div class="card-title"><span class="dot" style="background:#E6453C"></span>活动基本信息</div>
       <div class="form-row">
         <div class="form-group">
           <label>活动名称</label>
@@ -170,8 +244,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft
       </div>
       <div class="setup-divider">
         <div class="setup-divider-title">
-          <span class="dot" style="background:var(--amber)"></span>奖项设置
-          <span style="font-size:11px;font-weight:400;color:var(--text-hint);margin-left:4px;">（设置抽奖的奖项等级和数量）</span>
+          <span class="dot" style="background:#F5D76E"></span>奖项设置
+          <span style="font-size:13px;font-weight:400;color:var(--text-hint);margin-left:4px;">（设置抽奖的奖项等级和数量）</span>
         </div>
         <div id="prize-list"></div>
         <div class="btn-row" style="margin-top:14px;">
@@ -188,19 +262,19 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft
     </div>
 
     <div class="card">
-      <div class="card-title"><span class="dot" style="background:var(--blue)"></span>快捷操作</div>
+      <div class="card-title"><span class="dot" style="background:#F5D76E"></span>快捷操作</div>
       <div class="btn-row" style="margin-bottom:16px;">
         <button class="btn btn-success" onclick="openLottery()">打开大屏抽奖端 ↗</button>
         <button class="btn btn-outline" onclick="openJoin()">打开签到页（模拟扫码）↗</button>
         <button class="btn btn-outline" onclick="openIndex()">返回首页 ↗</button>
       </div>
       <div id="setup-qr-preview" style="display:none;">
-        <div style="font-size:12px;color:var(--text-hint);margin-bottom:10px;">保存后自动生成的入场二维码（参会者扫此码签到）</div>
+        <div style="font-size:14px;color:var(--text-hint);margin-bottom:10px;">保存后自动生成的入场二维码（参会者扫此码签到）</div>
         <div style="display:flex;align-items:center;gap:20px;">
-          <div id="setup-qr-box" style="flex-shrink:0;width:120px;height:120px;background:var(--gray-light);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;"></div>
+          <div id="setup-qr-box" style="flex-shrink:0;width:120px;height:120px;background:rgba(45,30,38,0.40);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;"></div>
           <div>
-            <div style="font-size:12px;color:var(--text-sec);margin-bottom:6px;">签到页地址</div>
-            <div id="setup-qr-url" style="font-size:11px;color:var(--text-hint);word-break:break-all;padding:6px 8px;background:var(--gray-light);border-radius:5px;"></div>
+            <div style="font-size:14px;color:var(--text-sec);margin-bottom:6px;">签到页地址</div>
+            <div id="setup-qr-url" style="font-size:13px;color:var(--text-hint);word-break:break-all;padding:6px 8px;background:rgba(45,30,38,0.40);border-radius:5px;"></div>
           </div>
         </div>
       </div>
@@ -242,7 +316,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft
     </div>
 
     <div class="card">
-      <div class="card-title"><span class="dot" style="background:var(--purple-mid)"></span>手动添加参与者</div>
+      <div class="card-title"><span class="dot" style="background:#F5D76E"></span>手动添加参与者</div>
       <div class="form-row" style="grid-template-columns: 1fr 1fr auto;">
         <div class="form-group">
           <label>姓名</label>
@@ -260,12 +334,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft
 
     <div class="card">
       <div class="card-title">
-        <span class="dot" style="background:var(--blue)"></span>参与者名单
+        <span class="dot" style="background:#E6453C"></span>参与者名单
       </div>
       <div class="btn-row" style="margin-bottom:12px;">
         <button class="btn btn-danger btn-sm" onclick="clearParticipants()">清空名单</button>
         <button class="btn btn-outline btn-sm" onclick="exportAllData()">导出全部数据</button>
-        <button class="btn btn-sm" id="refresh-btn" onclick="refreshFromServer()" style="background:var(--blue);" title="从服务器拉取最新参与者数据">🔄 刷新</button>
+        <button class="btn btn-sm" id="refresh-btn" onclick="refreshFromServer()" style="background:linear-gradient(135deg,#E6453C,#C0392B);" title="从服务器拉取最新参与者数据">🔄 刷新</button>
       </div>
       <div class="participant-grid" id="participant-grid">
         <div class="empty-hint">暂无参与者，请参会人员扫码加入或手动添加</div>
@@ -276,7 +350,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft
   <!-- 抽奖结果 -->
   <div class="page" id="page-results">
     <div class="card">
-      <div class="card-title"><span class="dot" style="background:var(--green)"></span>中奖记录</div>
+      <div class="card-title"><span class="dot" style="background:#10B981"></span>中奖记录</div>
       <div id="results-list">
         <div class="empty-hint">暂无抽奖记录</div>
       </div>
@@ -402,7 +476,6 @@ function connectSSE() {
     });
 
     window._SSE.onerror = function() {
-      // 连接断开，5秒后重连
       setTimeout(function() {
         if (window._SRV) connectSSE();
       }, 5000);
@@ -413,8 +486,7 @@ function connectSSE() {
 }
 
 // ============= 初始化：检测服务器 =============
-(function init() {
-  // 先从 localStorage 加载缓存
+function initApp() {
   try {
     window._cache.setup = JSON.parse(localStorage.getItem('lottery_setup'));
     window._cache.prizes = JSON.parse(localStorage.getItem('lottery_prizes')) || [];
@@ -424,13 +496,10 @@ function connectSSE() {
 
   window._actId = (window._cache.setup && window._cache.setup._actId) || '';
 
-  // 探测服务器
   srvAPI('/api/health').then(function(d) {
     window._SRV = true;
     updateServerUI(true);
     document.getElementById('qr-mode-hint').textContent = '在线模式：所有设备扫码签到后数据将实时同步到管理端。';
-
-    // 从服务器加载最新数据
     return srvAPI('/api/data');
   }).then(function(d) {
     if (d && d.setup) { window._cache.setup = d.setup; localStorage.setItem('lottery_setup', JSON.stringify(d.setup)); }
@@ -441,13 +510,10 @@ function connectSSE() {
   }).catch(function() {
     window._SRV = false;
     updateServerUI(false);
-    document.getElementById('qr-mode-hint').innerHTML = '离线模式：数据存储在浏览器本地。<br><b style="color:var(--red);">如需跨设备同步，请运行 node server.js 启动后端服务。</b>';
+    document.getElementById('qr-mode-hint').innerHTML = '离线模式：数据存储在浏览器本地。<br><b style="color:var(--danger);">如需跨设备同步，请运行 node server.js 启动后端服务。</b>';
   }).then(function() {
-    // 连接 SSE（仅在线模式）
     if (window._SRV) connectSSE();
-    // 获取手机可访问的 base URL（自动 localhost → LAN IP）
     if (window._SRV) initBaseURL();
-    // 初始化 UI
     loadSetup();
     if (!window._cache.setup) {
       document.getElementById('actDate').value = new Date().toISOString().split('T')[0];
@@ -455,43 +521,27 @@ function connectSSE() {
       genSetupPreviewQR();
     }
   });
-})();
+}
 
 // ============= 数据读写（服务器优先） =============
 function saveData(key, val) {
-  // 更新缓存
   if (key === 'setup') window._cache.setup = val;
   else if (key === 'prizes') window._cache.prizes = val;
   else if (key === 'participants') window._cache.participants = val;
   else if (key === 'results') window._cache.results = val;
-
-  // 写 localStorage 兜底
   localStorage.setItem('lottery_' + key, JSON.stringify(val));
-
-  // 写服务器
   if (window._SRV) {
     if (key === 'setup') srvAPI('/api/setup', 'POST', val).catch(function(){});
     else if (key === 'prizes') srvAPI('/api/prizes', 'POST', val).catch(function(){});
     else if (key === 'participants') srvAPI('/api/participants', 'PUT', val).catch(function(){});
-    else if (key === 'results') return; // results 由抽奖端写入
+    else if (key === 'results') return;
   }
 }
 
-function getParticipants() {
-  return window._cache.participants || [];
-}
-
-function getSetup() {
-  return window._cache.setup;
-}
-
-function getPrizes() {
-  return window._cache.prizes || [];
-}
-
-function getResults() {
-  return window._cache.results || [];
-}
+function getParticipants() { return window._cache.participants || []; }
+function getSetup() { return window._cache.setup; }
+function getPrizes() { return window._cache.prizes || []; }
+function getResults() { return window._cache.results || []; }
 
 // ============= 页面切换 =============
 function showPage(p) {
@@ -525,12 +575,9 @@ function saveSetup() {
     desc: document.getElementById('actDesc').value.trim()
   };
   if (!data.name) { showMsg('setup-msg', '请输入活动名称', true); return; }
-
   data._actId = Date.now().toString(36) + Math.random().toString(36).slice(2, 4);
   window._actId = data._actId;
-
   saveData('setup', data);
-
   if (!getPrizes().length) {
     saveData('prizes', [
       { id: 1, name: '一等奖', desc: '丰厚奖品', count: 1 },
@@ -538,11 +585,8 @@ function saveSetup() {
       { id: 3, name: '三等奖', desc: '纪念品', count: 3 }
     ]);
   }
-
   showMsg('setup-msg', '活动信息已保存！');
-  genQR();
-  genLotteryQR();
-  genSetupPreviewQR();
+  genQR(); genLotteryQR(); genSetupPreviewQR();
 }
 
 function loadSetup() {
@@ -556,14 +600,13 @@ function loadSetup() {
 }
 
 // ============= 二维码 =============
-var _baseURL = '';  // 手机可访问的 base URL
+var _baseURL = '';
 
 function getBaseURL() {
   return _baseURL || window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '');
 }
 
 function initBaseURL() {
-  // 从服务器获取手机可访问的地址
   var xhr = new XMLHttpRequest();
   xhr.open('GET', '/api/baseurl');
   xhr.timeout = 2000;
@@ -571,13 +614,7 @@ function initBaseURL() {
     if (xhr.status === 200) {
       try {
         var data = JSON.parse(xhr.responseText);
-        if (data.base) {
-          _baseURL = data.base;
-          // 更新已生成的二维码
-          genQR();
-          genLotteryQR();
-          genSetupPreviewQR();
-        }
+        if (data.base) { _baseURL = data.base; genQR(); genLotteryQR(); genSetupPreviewQR(); }
       } catch(e) {}
     }
   };
@@ -587,14 +624,10 @@ function initBaseURL() {
 function getJoinURL() {
   var setup = getSetup() || {};
   var name = setup.name || '';
-  if (!name) return null; // 无活动名称时返回 null
+  if (!name) return null;
   var miniSetup = {
-    n: name,
-    d: setup.date || '',
-    o: setup.org || '',
-    l: setup.location || '',
-    c: setup.desc || '',
-    id: setup._actId || window._actId
+    n: name, d: setup.date || '', o: setup.org || '',
+    l: setup.location || '', c: setup.desc || '', id: setup._actId || window._actId
   };
   var json = JSON.stringify(miniSetup);
   var utf8Bytes = encodeURIComponent(json).replace(/%([0-9A-F]{2})/g, function(m, p) {
@@ -604,22 +637,20 @@ function getJoinURL() {
   return getBaseURL() + '/join.html#' + hash;
 }
 
-function getLotteryURL() {
-  return getBaseURL() + '/lottery.html';
-}
+function getLotteryURL() { return getBaseURL() + '/lottery.html'; }
 
 function genQR() {
   var url = getJoinURL();
   if (!url) {
     document.getElementById('qr-url-text').textContent = '请先在"活动设置"中填写活动名称并保存';
     var container = document.getElementById('qr-container');
-    container.innerHTML = '<div style="padding:20px;color:#A32D2D;font-size:13px;text-align:center;">⚠️ 请先在左侧「活动设置」中<br>填写活动名称并点击保存</div>';
+    container.innerHTML = '<div style="padding:20px;color:#E5484D;font-size:15px;text-align:center;">⚠️ 请先在左侧「活动设置」中<br>填写活动名称并点击保存</div>';
     return;
   }
   document.getElementById('qr-url-text').textContent = url;
   var container = document.getElementById('qr-container');
   container.innerHTML = '';
-  try { new QRCode(container, { text: url, width: 160, height: 160, colorDark: '#26215C', colorLight: '#fff' }); } catch(e) {}
+  try { new QRCode(container, { text: url, width: 160, height: 160, colorDark: '#000000', colorLight: '#FFFFFF' }); } catch(e) {}
 }
 
 function genLotteryQR() {
@@ -627,21 +658,21 @@ function genLotteryQR() {
   document.getElementById('lottery-qr-url-text').textContent = url;
   var container = document.getElementById('lottery-qr-container');
   container.innerHTML = '';
-  try { new QRCode(container, { text: url, width: 160, height: 160, colorDark: '#26215C', colorLight: '#fff' }); } catch(e) {}
+  try { new QRCode(container, { text: url, width: 160, height: 160, colorDark: '#000000', colorLight: '#FFFFFF' }); } catch(e) {}
 }
 
 function genSetupPreviewQR() {
   var url = getJoinURL();
   if (!url) {
     document.getElementById('setup-qr-url').textContent = '请先保存活动设置';
-    document.getElementById('setup-qr-box').innerHTML = '<div style="padding:10px;color:#A32D2D;font-size:11px;text-align:center;">⚠ 待保存</div>';
+    document.getElementById('setup-qr-box').innerHTML = '<div style="padding:10px;color:#E5484D;font-size:13px;text-align:center;">⚠ 待保存</div>';
     document.getElementById('setup-qr-preview').style.display = 'block';
     return;
   }
   document.getElementById('setup-qr-url').textContent = url;
   var box = document.getElementById('setup-qr-box');
   box.innerHTML = '';
-  try { new QRCode(box, { text: url, width: 110, height: 110, colorDark: '#26215C', colorLight: '#fff' }); } catch(e) {}
+  try { new QRCode(box, { text: url, width: 110, height: 110, colorDark: '#000000', colorLight: '#FFFFFF' }); } catch(e) {}
   document.getElementById('setup-qr-preview').style.display = 'block';
 }
 
@@ -661,34 +692,22 @@ function openIndex() { window.open(getBaseURL() + '/index.html', '_blank'); }
 
 function resetActivity() {
   if (!confirm('确认重置整个活动？\n\n这将清除所有活动设置、奖项配置、参与者名单和中奖记录。\n此操作不可恢复！')) return;
-
-  // 清空数据
   window._cache = { setup: null, prizes: [], participants: [], results: [] };
   localStorage.removeItem('lottery_setup');
   localStorage.removeItem('lottery_prizes');
   localStorage.removeItem('lottery_participants');
   localStorage.removeItem('lottery_results');
-
-  // 同步服务器
-  if (window._SRV) {
-    srvAPI('/api/reset', 'POST').catch(function(){});
-  }
-
-  // 重置表单
+  if (window._SRV) { srvAPI('/api/reset', 'POST').catch(function(){}); }
   document.getElementById('actName').value = '';
   document.getElementById('actDate').value = new Date().toISOString().split('T')[0];
   document.getElementById('actOrg').value = '';
   document.getElementById('actLoc').value = '';
   document.getElementById('actDesc').value = '';
-
-  // 写入默认奖项
   saveData('prizes', [
     { id: 1, name: '一等奖', desc: '丰厚奖品', count: 1 },
     { id: 2, name: '二等奖', desc: '精美礼品', count: 2 },
     { id: 3, name: '三等奖', desc: '纪念品', count: 3 }
   ]);
-
-  // 隐藏二维码预览
   document.getElementById('setup-qr-preview').style.display = 'none';
   document.getElementById('setup-qr-box').innerHTML = '';
   document.getElementById('setup-qr-url').textContent = '';
@@ -696,12 +715,8 @@ function resetActivity() {
   document.getElementById('lottery-qr-container').innerHTML = '';
   document.getElementById('qr-url-text').textContent = '';
   document.getElementById('lottery-qr-url-text').textContent = '';
-
   window._actId = '';
-  refreshParticipants();
-  renderResults();
-  renderPrizes();
-
+  refreshParticipants(); renderResults(); renderPrizes();
   showMsg('setup-msg', '活动已重置！请重新设置活动信息');
 }
 
@@ -823,9 +838,7 @@ function refreshFromServer() {
 function removeParticipant(phone) {
   var parts = getParticipants().filter(function(p) { return p.phone !== phone; });
   saveData('participants', parts);
-  if (window._SRV) {
-    srvAPI('/api/participants/' + encodeURIComponent(phone), 'DELETE').catch(function(){});
-  }
+  if (window._SRV) { srvAPI('/api/participants/' + encodeURIComponent(phone), 'DELETE').catch(function(){}); }
   refreshParticipants();
 }
 
@@ -845,12 +858,7 @@ function manualAdd() {
   if (parts.some(function(p) { return p.phone === phone && p.actId === actId; })) { alert('该手机号已参与本次活动'); return; }
   parts.push({ name: name, phone: phone, actId: actId, joinTime: new Date().toLocaleString(), source: 'manual' });
   saveData('participants', parts);
-
-  // 服务器模式下也要通过API添加
-  if (window._SRV) {
-    srvAPI('/api/participants', 'POST', { name: name, phone: phone, actId: actId, source: 'manual' }).catch(function(){});
-  }
-
+  if (window._SRV) { srvAPI('/api/participants', 'POST', { name: name, phone: phone, actId: actId, source: 'manual' }).catch(function(){}); }
   document.getElementById('manualName').value = '';
   document.getElementById('manualPhone').value = '';
   refreshParticipants();
@@ -858,12 +866,7 @@ function manualAdd() {
 
 // ============= 导出 =============
 function exportAllData() {
-  var data = {
-    setup: getSetup(),
-    prizes: getPrizes(),
-    participants: getParticipants(),
-    results: getResults()
-  };
+  var data = { setup: getSetup(), prizes: getPrizes(), participants: getParticipants(), results: getResults() };
   var json = JSON.stringify(data, null, 2);
   navigator.clipboard.writeText(json).then(function() {
     alert('全部数据已复制到剪贴板！');
@@ -885,6 +888,59 @@ function renderResults() {
       '</div>';
   }).join('');
 }
+
+// ============= 粒子背景 =============
+(function() {
+  var canvas = document.getElementById('particles');
+  var ctx = canvas.getContext('2d');
+  var particles = [];
+  var W, H;
+  var golds = [
+    'rgba(193,154,74,', 'rgba(176,138,62,', 'rgba(160,120,50,',
+    'rgba(200,170,100,', 'rgba(140,100,40,', 'rgba(175,120,55,',
+  ];
+  function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  function createParticles(n) {
+    particles = [];
+    for (var i = 0; i < n; i++) {
+      particles.push({
+        x: Math.random() * W, y: Math.random() * H,
+        r: Math.random() * 1.8 + 0.3,
+        alpha: Math.random() * 0.5 + 0.15,
+        maxAlpha: Math.random() * 0.5 + 0.3,
+        minAlpha: Math.random() * 0.08 + 0.02,
+        speed: Math.random() * 0.25 + 0.04,
+        twinkleSpeed: Math.random() * 0.015 + 0.004,
+        twinkleDir: 1,
+        gold: golds[Math.floor(Math.random() * golds.length)],
+        wobble: Math.random() * Math.PI * 2,
+        wobbleSpeed: Math.random() * 0.3 + 0.1,
+      });
+    }
+  }
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    for (var i = 0; i < particles.length; i++) {
+      var p = particles[i];
+      p.alpha += p.twinkleSpeed * p.twinkleDir;
+      if (p.alpha >= p.maxAlpha) p.twinkleDir = -1;
+      if (p.alpha <= p.minAlpha) p.twinkleDir = 1;
+      p.wobble += p.wobbleSpeed * 0.01;
+      p.y -= p.speed;
+      if (p.y < -4) { p.y = H + 4; p.x = Math.random() * W; }
+      ctx.beginPath();
+      ctx.arc(p.x + Math.sin(p.wobble) * 2, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = p.gold + p.alpha + ')';
+      ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize', function() { resize(); createParticles(160); });
+  resize(); createParticles(160); draw();
+})();
+
+// 页面初始化
+initApp();
 </script>
 
 </body>

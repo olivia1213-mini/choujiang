@@ -6,49 +6,358 @@
 <title>扫码抽奖系统</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: linear-gradient(135deg, #1a0533 0%, #2d1b69 50%, #1a0533 100%); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; padding: 40px 20px; }
-.container { max-width: 520px; width: 100%; text-align: center; }
-.logo { font-size: 64px; margin-bottom: 12px; animation: float 3s ease-in-out infinite; }
-@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
-h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: 2px; }
-.subtitle { font-size: 14px; opacity: 0.7; margin-bottom: 40px; }
-.card-grid { display: grid; gap: 16px; margin-bottom: 24px; }
-.card { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 28px 24px; text-align: left; transition: all 0.2s; cursor: pointer; text-decoration: none; color: inherit; display: block; }
-.card:hover { background: rgba(255,255,255,0.14); transform: translateY(-2px); }
-.card-icon { font-size: 32px; margin-bottom: 12px; }
-.card-title { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
-.card-desc { font-size: 13px; opacity: 0.6; line-height: 1.5; }
-.tip { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px 20px; font-size: 12px; opacity: 0.6; line-height: 1.8; text-align: left; }
-.tip strong { opacity: 0.9; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Noto Serif SC', 'Microsoft YaHei', serif;
+  background: linear-gradient(180deg, #e8dcc8 0%, #f0e8d8 35%, #f5efe5 70%, #faf7f2 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #2c2416;
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: relative;
+}
+
+canvas#particles {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.bg-glow {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(100px);
+  pointer-events: none;
+  z-index: 0;
+}
+.bg-glow-top {
+  width: 900px; height: 600px;
+  background: radial-gradient(circle, rgba(210,160,90,0.22) 0%, rgba(190,140,80,0.08) 35%, transparent 65%);
+  top: -200px; left: 50%; transform: translateX(-50%);
+  animation: glowPulse 8s ease-in-out infinite alternate;
+}
+.bg-glow-bot {
+  width: 650px; height: 480px;
+  background: radial-gradient(circle, rgba(200,155,90,0.14) 0%, rgba(180,140,80,0.05) 35%, transparent 65%);
+  bottom: -150px; left: 30%;
+  animation: glowPulse 10s ease-in-out 2s infinite alternate;
+}
+@keyframes glowPulse {
+  0% { opacity: 0.6; transform: translateX(-50%) scale(1); }
+  100% { opacity: 1; transform: translateX(-50%) scale(1.08); }
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 780px;
+  width: 92%;
+  text-align: center;
+  padding: 60px 30px 50px;
+}
+
+.fade-in { animation: fadeUp 0.7s ease both; }
+.fade-in.d1 { animation-delay: 0.05s; }
+.fade-in.d2 { animation-delay: 0.15s; }
+.fade-in.d3 { animation-delay: 0.25s; }
+.fade-in.d4 { animation-delay: 0.35s; }
+.fade-in.d5 { animation-delay: 0.45s; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== 标题 ===== */
+.site-title {
+  font-size: 64px;
+  font-weight: 800;
+  letter-spacing: 10px;
+  line-height: 1.2;
+  margin-bottom: 20px;
+  background: linear-gradient(180deg,
+    #d4b87a 0%,   /* 亮金 */
+    #c19a4a 15%,  /* 温金 */
+    #a07a32 35%,  /* 鎏金 */
+    #8b6520 55%,  /* 暗金 */
+    #6e4d15 75%,  /* 深铜 */
+    #523a0e 100%  /* 深棕 */
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+  position: relative;
+}
+
+.subtitle {
+  font-size: 20px;
+  color: rgba(44,36,22,0.48);
+  letter-spacing: 5px;
+  margin-bottom: 44px;
+}
+
+/* ===== 金线分隔 ===== */
+.gold-line {
+  width: 120px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(176,138,62,0.50), rgba(176,138,62,0.80), rgba(176,138,62,0.50), transparent);
+  margin: 0 auto 44px;
+}
+
+/* ===== 卡片区 ===== */
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.card {
+  position: relative;
+  overflow: hidden;
+  background: rgba(255,252,248,0.65);
+  border: 1px solid rgba(176,138,62,0.16);
+  border-radius: 18px;
+  padding: 48px 32px 44px;
+  text-align: center;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(176,138,62,0.35);
+  background: rgba(255,252,248,0.86);
+  box-shadow: 0 8px 40px rgba(100,70,40,0.08), 0 3px 12px rgba(176,138,62,0.08);
+}
+
+
+
+.card-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  letter-spacing: 3px;
+  color: rgba(44,36,22,0.88);
+  transition: color 0.3s;
+}
+.card:hover .card-title { color: #b08a3e; }
+
+.card-desc {
+  font-size: 18px;
+  color: rgba(44,36,22,0.50);
+  line-height: 1.8;
+  transition: color 0.3s;
+}
+.card:hover .card-desc { color: rgba(44,36,22,0.65); }
+
+.card-join {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  text-align: left;
+  padding: 34px 38px;
+}
+
+.card-join .card-title { margin-bottom: 5px; }
+
+/* ===== 使用说明 ===== */
+.tip {
+  background: rgba(255,252,248,0.55);
+  border: 1px solid rgba(176,138,62,0.12);
+  border-radius: 16px;
+  padding: 32px 36px;
+  font-size: 17px;
+  color: rgba(44,36,22,0.55);
+  line-height: 2.2;
+  text-align: left;
+}
+.tip-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(176,138,62,0.75);
+  letter-spacing: 4px;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+.tip ol { padding-left: 20px; }
+.tip li { margin-bottom: 4px; }
+.tip .hint {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(176,138,62,0.10);
+  color: rgba(44,36,22,0.38);
+  font-size: 14px;
+}
+
+/* ===== 全局页面导航 ===== */
+.site-nav {
+  position: sticky; top: 0; z-index: 101;
+  background: rgba(245,240,232,0.88);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(176,138,62,0.10);
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+  padding: 0 12px; height: 44px;
+}
+.site-nav a {
+  display: inline-flex; align-items: center;
+  padding: 5px 14px; border-radius: 20px;
+  color: rgba(44,36,22,0.55); text-decoration: none;
+  font-size: 17px; font-weight: 500; transition: all 0.2s;
+  white-space: nowrap; letter-spacing: 1px;
+  border: 1px solid transparent;
+}
+.site-nav a:hover { color: #b08a3e; background: rgba(176,138,62,0.06); border-color: rgba(176,138,62,0.15); }
+.site-nav a.current { color: #b08a3e; background: rgba(176,138,62,0.10); border-color: rgba(176,138,62,0.20); font-weight: 600; }
+@media (max-width: 500px) {
+  .site-nav { gap: 2px; padding: 0 5px; height: 42px; }
+  .site-nav a { padding: 5px 10px; font-size: 14px; letter-spacing: 0; }
+}
+
+/* ===== 底部 ===== */
+.footer {
+  margin-top: 30px;
+  font-size: 14px;
+  color: rgba(44,36,22,0.28);
+  letter-spacing: 2px;
+}
 </style>
 </head>
 <body>
+
+<canvas id="particles"></canvas>
+
+<div class="bg-glow bg-glow-top"></div>
+<div class="bg-glow bg-glow-bot"></div>
+
+<nav class="site-nav">
+  <a href="index.html" class="current">🏠 首页</a>
+  <a href="join.html">✍️ 签到</a>
+  <a href="lottery.html">🎰 抽奖大屏</a>
+  <a href="admin.html">⚙️ 管理后台</a>
+</nav>
+
 <div class="container">
-  <div class="logo">🎊</div>
-  <h1>扫码抽奖系统</h1>
-  <div class="subtitle">聚会 / 年会 / 课堂演示 · 开箱即用</div>
+  <h1 class="site-title fade-in d1">扫码抽奖系统</h1>
+  <div class="subtitle fade-in d2">一键投屏 · 即刻开始</div>
+
+  <div class="gold-line fade-in d2"></div>
 
   <div class="card-grid">
-    <a href="admin.html" class="card">
-      <div class="card-icon">🛠️</div>
+    <a href="admin.html" class="card fade-in d3">
       <div class="card-title">管理员后台</div>
-      <div class="card-desc">设置活动信息、配置奖项、管理参与者、生成入场二维码</div>
+      <div class="card-desc">活动设置 · 奖项配置<br>参与者管理</div>
     </a>
-    <a href="lottery.html" class="card">
-      <div class="card-icon">🎰</div>
+    <a href="lottery.html" class="card fade-in d3">
       <div class="card-title">大屏抽奖端</div>
-      <div class="card-desc">大屏幕展示抽奖过程，滚动动画 + 纸屑特效，投屏使用</div>
+      <div class="card-desc">滚动抽奖 · 特效投屏<br>全场瞩目</div>
+    </a>
+    <a href="join.html" class="card card-join fade-in d4">
+      <div>
+        <div class="card-title">参与者签到</div>
+        <div class="card-desc">扫码签到 · 填写姓名手机号参与抽奖</div>
+      </div>
     </a>
   </div>
 
-  <div class="tip">
-    <strong>使用说明：</strong><br>
-    1. 打开「管理员后台」填写活动信息并保存<br>
-    2. 切换到「入场二维码」页，手机扫码即可签到<br>
-    3. 打开「大屏抽奖端」投屏，开始抽奖<br>
-    <br>
-    💡 建议演示方式：电脑打开管理后台，同时另开标签页模拟签到；大屏端可投影展示。
+  <div class="tip fade-in d5">
+    <div class="tip-title">快速开始</div>
+    <ol>
+      <li>进入「管理员后台」填写活动信息并配置奖项</li>
+      <li>在活动管理页面生成签到二维码</li>
+      <li>参与者扫码完成签到</li>
+      <li>打开「大屏抽奖端」投屏，点击开始抽奖</li>
+    </ol>
+    <div class="hint">电脑同时打开管理后台和签到页，可快速添加测试参与者</div>
   </div>
+
+  <div class="footer fade-in d5">Lottery System v2.0</div>
 </div>
+
+<script>
+(function() {
+  var canvas = document.getElementById('particles');
+  var ctx = canvas.getContext('2d');
+  var particles = [];
+  var W, H;
+
+  var golds = [
+    'rgba(193,154,74,',   /* 亮金 */
+    'rgba(176,138,62,',    /* 温金 */
+    'rgba(160,120,50,',    /* 鎏金 */
+    'rgba(200,170,100,',   /* 浅金 */
+    'rgba(140,100,40,',    /* 古金 */
+    'rgba(175,120,55,',    /* 暖铜 */
+  ];
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function createParticles(n) {
+    particles = [];
+    for (var i = 0; i < n; i++) {
+      particles.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: Math.random() * 1.8 + 0.3,
+        alpha: Math.random() * 0.5 + 0.15,
+        maxAlpha: Math.random() * 0.5 + 0.3,
+        minAlpha: Math.random() * 0.08 + 0.02,
+        speed: Math.random() * 0.25 + 0.04,
+        twinkleSpeed: Math.random() * 0.015 + 0.004,
+        twinkleDir: 1,
+        gold: golds[Math.floor(Math.random() * golds.length)],
+        wobble: Math.random() * Math.PI * 2,
+        wobbleSpeed: Math.random() * 0.3 + 0.1,
+      });
+    }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    for (var i = 0; i < particles.length; i++) {
+      var p = particles[i];
+
+      p.alpha += p.twinkleSpeed * p.twinkleDir;
+      if (p.alpha >= p.maxAlpha) { p.twinkleDir = -1; }
+      if (p.alpha <= p.minAlpha) { p.twinkleDir = 1; }
+
+      p.wobble += p.wobbleSpeed * 0.01;
+      p.y -= p.speed;
+      if (p.y < -4) {
+        p.y = H + 4;
+        p.x = Math.random() * W;
+      }
+
+      ctx.beginPath();
+      ctx.arc(p.x + Math.sin(p.wobble) * 2, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = p.gold + p.alpha + ')';
+      ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', function() {
+    resize();
+    createParticles(160);
+  });
+
+  resize();
+  createParticles(160);
+  draw();
+})();
+</script>
 </body>
 </html>

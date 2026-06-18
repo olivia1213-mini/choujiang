@@ -1,9 +1,9 @@
 node_modules/
-*.log
-npm-debug.log*
 data.json
 .DS_Store
-*.exe
-*.bat
-*.sh
-.env
+*.log
+cloudflared.exe
+current_url.txt
+start.bat
+start.ps1
+start.sh

@@ -6,38 +6,151 @@
 <title>签到加入抽奖</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root { --purple: #534AB7; --purple-mid: #7F77DD; --purple-light: #EEEDFE; --text: #2C2C2A; --text-sec: #5F5E5A; --text-hint: #888780; --border: rgba(0,0,0,0.12); }
-body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: linear-gradient(135deg, #f5f4f0 0%, #fff 100%); min-height: 100vh; color: var(--text); }
-.header { background: #fff; border-bottom: 1px solid var(--border); padding: 16px 20px; text-align: center; }
-.header .title { font-size: 18px; font-weight: 600; color: var(--purple); }
-.header .subtitle { font-size: 12px; color: var(--text-hint); margin-top: 2px; }
-.container { max-width: 420px; margin: 0 auto; padding: 20px; }
-.event-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
-.event-name { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
-.event-meta { font-size: 12px; color: var(--text-hint); line-height: 1.8; }
-.prize-preview { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); }
-.prize-preview-title { font-size: 12px; color: var(--text-sec); margin-bottom: 8px; }
-.prize-chip { display: inline-block; padding: 4px 10px; background: var(--purple-light); color: var(--purple); border-radius: 12px; font-size: 12px; margin: 2px; }
-.form-section { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
-.section-title { font-size: 16px; font-weight: 500; margin-bottom: 14px; }
-.input-group { margin-bottom: 14px; }
-.input-group label { display: block; font-size: 13px; color: var(--text-sec); margin-bottom: 5px; }
-.input-group input { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 15px; font-family: inherit; outline: none; transition: all 0.15s; -webkit-appearance: none; }
-.input-group input:focus { border-color: var(--purple-mid); }
-.join-btn { width: 100%; padding: 14px; background: var(--purple); color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 500; cursor: pointer; font-family: inherit; }
-.join-btn:active { opacity: 0.9; }
-.join-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.error-msg { font-size: 12px; color: #A32D2D; margin-bottom: 10px; display: none; }
+:root { --gold: #b08a3e; --gold-mid: #c19a4a; --gold-light: rgba(176,138,62,0.10); --red: #c4603a; --text: rgba(44,36,22,0.92); --text-sec: rgba(44,36,22,0.58); --text-hint: rgba(44,36,22,0.38); --border: rgba(176,138,62,0.14); }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: linear-gradient(180deg, #e8dcc8 0%, #f0e8d8 35%, #f5efe5 70%, #faf7f2 100%);
+  min-height: 100vh; color: #2c2416;
+  position: relative; overflow-x: hidden;
+}
+
+canvas#particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; will-change: transform; }
+
+.bg-glow { position: fixed; border-radius: 50%; filter: blur(100px); pointer-events: none; z-index: 0; }
+.bg-glow-top { width: 900px; height: 600px; background: radial-gradient(circle, rgba(210,160,90,0.20) 0%, rgba(190,140,80,0.06) 35%, transparent 65%); top: -200px; left: 50%; transform: translateX(-50%); }
+.bg-glow-bot { width: 650px; height: 480px; background: radial-gradient(circle, rgba(200,155,90,0.12) 0%, rgba(180,140,80,0.04) 35%, transparent 65%); bottom: -150px; left: 30%; }
+
+.header { background: rgba(245,240,232,0.80); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid rgba(176,138,62,0.10); padding: 14px 20px; text-align: center; position: relative; z-index: 1; }
+.header .title { font-size: 22px; font-weight: 700; color: #8b6520; letter-spacing: 2px; }
+.header .subtitle { font-size: 14px; color: var(--text-hint); margin-top: 4px; }
+
+/* ===== 全局页面导航 ===== */
+.site-nav {
+  position: sticky; top: 0; z-index: 101;
+  background: rgba(245,240,232,0.88);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(176,138,62,0.10);
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+  padding: 0 12px; height: 44px;
+}
+.site-nav a {
+  display: inline-flex; align-items: center;
+  padding: 5px 14px; border-radius: 20px;
+  color: rgba(44,36,22,0.55); text-decoration: none;
+  font-size: 17px; font-weight: 500; transition: all 0.2s;
+  white-space: nowrap; letter-spacing: 1px;
+  border: 1px solid transparent;
+}
+.site-nav a:hover { color: #b08a3e; background: rgba(176,138,62,0.06); border-color: rgba(176,138,62,0.15); }
+.site-nav a.current { color: #b08a3e; background: rgba(176,138,62,0.10); border-color: rgba(176,138,62,0.20); font-weight: 600; }
+@media (max-width: 500px) {
+  .site-nav { gap: 2px; padding: 0 5px; height: 42px; }
+  .site-nav a { padding: 5px 10px; font-size: 14px; letter-spacing: 0; }
+}
+
+.container { max-width: 420px; margin: 0 auto; padding: 20px; position: relative; z-index: 1; }
+
+.event-card { background: rgba(255,252,248,0.60); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.event-name { font-size: 22px; font-weight: 600; margin-bottom: 8px; color: #8b6520; }
+.event-meta { font-size: 14px; color: var(--text-hint); line-height: 1.8; }
+.prize-preview { margin-top: 14px; padding-top: 14px; border-top: 1px dashed rgba(176,138,62,0.12); }
+.prize-preview-title { font-size: 14px; color: var(--text-sec); margin-bottom: 8px; }
+.prize-chip { display: inline-block; padding: 5px 12px; background: rgba(176,138,62,0.08); color: #8b6520; border: 1px solid rgba(176,138,62,0.14); border-radius: 12px; font-size: 14px; margin: 3px; }
+
+.form-section { background: rgba(255,252,248,0.60); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.section-title { font-size: 18px; font-weight: 500; margin-bottom: 16px; color: var(--text); }
+.input-group { margin-bottom: 16px; }
+.input-group label { display: block; font-size: 15px; color: var(--text-sec); margin-bottom: 6px; }
+.input-group input { width: 100%; padding: 14px 16px; border: 1.5px solid rgba(176,138,62,0.14); border-radius: 10px; font-size: 17px; font-family: inherit; outline: none; transition: all 0.15s; -webkit-appearance: none; background: rgba(245,240,232,0.60); color: var(--text); }
+.input-group input:hover { border-color: rgba(176,138,62,0.28); }
+.input-group input:focus { border-color: #b08a3e; box-shadow: 0 0 0 3px rgba(176,138,62,0.08); background: rgba(250,245,238,0.80); }
+.input-group input::placeholder { color: rgba(44,36,22,0.25); }
+
+.join-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #b08a3e, #8b6520); color: #fff; border: none; border-radius: 10px; font-size: 18px; font-weight: 500; cursor: pointer; font-family: inherit; box-shadow: 0 2px 12px rgba(139,101,32,0.20); transition: all 0.2s; }
+.join-btn:active { opacity: 0.9; transform: scale(0.98); }
+.join-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.error-msg { font-size: 14px; color: #E5484D; margin-bottom: 10px; display: none; }
+
 .success-screen { text-align: center; padding: 40px 20px; display: none; }
-.success-screen .icon { font-size: 64px; margin-bottom: 16px; }
-.success-screen .name { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
-.success-screen .info { font-size: 13px; color: var(--text-sec); margin-bottom: 20px; }
-.no-id-screen { text-align: center; padding: 60px 20px; display: none; }
-.tip { font-size: 11px; color: #888; margin-top: -8px; margin-bottom: 8px; }
-.note-box { background: #EEEDFE; border: 1px solid var(--purple-mid); border-radius: 10px; padding: 12px 16px; margin-top: 16px; font-size: 12px; color: var(--purple); line-height: 1.6; }
+.success-screen .icon { font-size: 72px; margin-bottom: 16px; }
+.success-screen .name { font-size: 24px; font-weight: 600; margin-bottom: 8px; color: #8b6520; }
+.success-screen .info { font-size: 15px; color: var(--text-sec); margin-bottom: 20px; }
+
+.no-id-screen { text-align: center; padding: 60px 20px; display: none; position: relative; z-index: 1; }
+.no-id-screen a { color: #b08a3e; text-decoration: none; font-weight: 500; }
+
+.tip { font-size: 13px; color: var(--text-hint); margin-top: -8px; margin-bottom: 8px; }
+
+.note-box { background: rgba(45,138,94,0.06); border: 1px solid rgba(45,138,94,0.18); border-radius: 10px; padding: 14px 18px; margin-top: 18px; font-size: 14px; color: #2d8a5e; line-height: 1.7; }
+
+/* ===== 等待抽奖 ===== */
+.waiting-screen { text-align: center; padding: 50px 20px; display: none; }
+.waiting-pulse { width: 100px; height: 100px; margin: 0 auto 24px; position: relative; transform: translateZ(0); }
+.waiting-pulse .ring { position: absolute; inset: 0; border-radius: 50%; border: 3px solid rgba(176,138,62,0.18); animation: pulseRing 2s ease-out infinite; }
+.waiting-pulse .ring:nth-child(2) { animation-delay: 0.6s; }
+.waiting-pulse .ring:nth-child(3) { animation-delay: 1.2s; }
+.waiting-pulse .center { position: absolute; inset: 18px; border-radius: 50%; background: linear-gradient(135deg, #b08a3e, #8b6520); display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: 0 0 24px rgba(139,101,32,0.30); }
+@keyframes pulseRing { 0% { transform: scale(0.7); opacity: 0.8; } 100% { transform: scale(1.6); opacity: 0; } }
+.waiting-title { font-size: 26px; font-weight: 700; color: #8b6520; letter-spacing: 2px; margin-bottom: 10px; }
+.waiting-sub { font-size: 16px; color: var(--text-sec); margin-bottom: 28px; }
+.waiting-dots span { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #b08a3e; margin: 0 4px; animation: dotBlink 1.4s infinite; }
+.waiting-dots span:nth-child(2) { animation-delay: 0.2s; }
+.waiting-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dotBlink { 0%,80%,100% { opacity: 0.2; } 40% { opacity: 1; } }
+.waiting-pool { display: inline-block; padding: 10px 24px; border: 1px solid rgba(176,138,62,0.14); border-radius: 20px; font-size: 15px; color: var(--text-hint); margin-top: 8px; }
+.waiting-pool strong { color: #8b6520; }
+
+/* ===== 中奖 ===== */
+.win-screen { text-align: center; padding: 40px 20px; display: none; position: relative; overflow: hidden; }
+.win-badge { width: 130px; height: 130px; margin: 0 auto 24px; border-radius: 50%; background: linear-gradient(135deg, #b08a3e 0%, #8b6520 100%); display: flex; align-items: center; justify-content: center; font-size: 58px; box-shadow: 0 0 0 8px rgba(176,138,62,0.10), 0 0 40px rgba(139,101,32,0.30); animation: winPop 0.6s cubic-bezier(0.175,0.885,0.32,1.275); }
+@keyframes winPop { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+.win-title { font-size: 34px; font-weight: 700; letter-spacing: 3px; color: #8b6520; margin-bottom: 8px; text-shadow: 0 0 20px rgba(139,101,32,0.35); }
+.win-name { font-size: 20px; color: var(--text); margin-bottom: 16px; }
+.win-prize { display: inline-block; padding: 10px 28px; background: linear-gradient(135deg, rgba(176,138,62,0.12), rgba(139,101,32,0.08)); border: 1px solid rgba(176,138,62,0.25); border-radius: 30px; font-size: 24px; font-weight: 600; color: #8b6520; margin-bottom: 20px; letter-spacing: 2px; }
+.win-desc { font-size: 15px; color: var(--text-hint); line-height: 1.8; }
+.win-shine { position: absolute; top: -40px; left: 50%; transform: translateX(-50%); width: 200%; height: 200px; background: radial-gradient(ellipse, rgba(193,154,74,0.14) 0%, transparent 60%); pointer-events: none; animation: shineIn 1s ease-out; }
+@keyframes shineIn { from { opacity: 0; transform: translateX(-50%) scale(0.5); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
+
+/* ===== 未中奖 ===== */
+.miss-screen { text-align: center; padding: 50px 20px; display: none; }
+.miss-icon { width: 100px; height: 100px; margin: 0 auto 20px; border-radius: 50%; background: rgba(44,36,22,0.04); border: 2px solid rgba(44,36,22,0.08); display: flex; align-items: center; justify-content: center; font-size: 44px; }
+.miss-title { font-size: 24px; font-weight: 600; color: var(--text-sec); margin-bottom: 8px; letter-spacing: 1px; }
+.miss-sub { font-size: 15px; color: var(--text-hint); line-height: 1.8; margin-bottom: 20px; }
+.miss-continue { display: inline-block; padding: 10px 28px; border: 1px solid rgba(176,138,62,0.18); border-radius: 20px; font-size: 15px; color: #8b6520; }
+
+/* 纸屑 canvas */
+#win-confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; display: none; }
+
+/* ========== 手机端性能优化 ========== */
+@media (max-width: 768px) {
+  .header, .event-card, .form-section, .guide-panel {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(245,240,232,0.92) !important;
+  }
+  .bg-glow-top { width: 400px !important; height: 300px !important; filter: blur(50px) !important; opacity: 0.5 !important; }
+  .bg-glow-bot { width: 300px !important; height: 200px !important; filter: blur(50px) !important; opacity: 0.4 !important; }
+  .waiting-pulse .ring { animation: pulseRingMob 2s ease-out infinite; }
+  @keyframes pulseRingMob { 0% { transform: scale(0.85); opacity: 0.6; } 100% { transform: scale(1.3); opacity: 0; } }
+  .waiting-pulse .center { box-shadow: 0 0 12px rgba(139,101,32,0.20); }
+  .win-badge { box-shadow: 0 0 0 4px rgba(176,138,62,0.08), 0 0 20px rgba(139,101,32,0.18); }
+}
 </style>
 </head>
 <body>
+
+<canvas id="particles"></canvas>
+<div class="bg-glow bg-glow-top"></div>
+<div class="bg-glow bg-glow-bot"></div>
+
+<nav class="site-nav">
+  <a href="index.html">🏠 首页</a>
+  <a href="join.html" class="current">✍️ 签到</a>
+  <a href="lottery.html">🎰 抽奖大屏</a>
+  <a href="admin.html">⚙️ 管理后台</a>
+</nav>
 
 <div class="header">
   <div class="title">扫码签到</div>
@@ -47,19 +160,19 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft
 <div class="container">
 
   <div class="no-id-screen" id="no-id-screen">
-    <div style="font-size:48px;margin-bottom:16px;">🔗</div>
-    <div style="font-size:16px;font-weight:500;margin-bottom:8px;">请扫描活动二维码</div>
-    <div style="font-size:13px;color:#888;margin-bottom:20px;">此链接无效，请向活动组织者获取正确的二维码</div>
-    <div style="font-size:12px;color:#888;border-top:1px solid #eee;padding-top:16px;">
+    <div style="font-size:56px;margin-bottom:16px;">🔗</div>
+    <div style="font-size:18px;font-weight:500;margin-bottom:8px;">请扫描活动二维码</div>
+    <div style="font-size:15px;color:var(--text-hint);margin-bottom:20px;">此链接无效，请向活动组织者获取正确的二维码</div>
+    <div style="font-size:14px;color:var(--text-hint);border-top:1px solid rgba(220,180,80,0.10);padding-top:16px;">
       您是活动组织者？<br>
-      <a href="admin.html" style="color:var(--purple);text-decoration:none;font-weight:500;">点击进入管理员后台</a>
+      <a href="admin.html">点击进入管理员后台</a>
     </div>
   </div>
 
   <div id="loading-screen">
     <div style="text-align:center;padding:60px 20px;">
-      <div style="width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px;"></div>
-      <div style="font-size:13px;color:var(--text-hint);">正在加载活动信息...</div>
+      <div style="width:32px;height:32px;border:3px solid rgba(220,180,80,0.12);border-top-color:#F5D76E;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px;"></div>
+      <div style="font-size:15px;color:var(--text-hint);">正在加载活动信息...</div>
     </div>
   </div>
 
@@ -96,12 +209,45 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft
     <div class="success-screen" id="success-screen">
       <div class="icon">✅</div>
       <div class="name" id="success-name">张三</div>
-      <div class="info">签到成功！您已成功加入抽奖池</div>
-      <div style="font-size:13px;color:var(--text-hint);margin-bottom:20px;">当前抽奖池共 <strong id="pool-num" style="color:var(--purple);">0</strong> 人</div>
+      <div class="info">签到成功！即将进入等待页面...</div>
+    </div>
+
+    <!-- 等待抽奖 -->
+    <div class="waiting-screen" id="waiting-screen">
+      <div class="waiting-pulse">
+        <div class="ring"></div>
+        <div class="ring"></div>
+        <div class="ring"></div>
+        <div class="center">🎰</div>
+      </div>
+      <div class="waiting-title">等待抽奖中</div>
+      <div class="waiting-sub" id="waiting-name-sub">请耐心等待，抽奖即将开始</div>
+      <div class="waiting-dots"><span></span><span></span><span></span></div>
+      <div class="waiting-pool" style="margin-top:24px;">抽奖池共 <strong id="pool-num">0</strong> 人</div>
+    </div>
+
+    <!-- 中奖 -->
+    <div class="win-screen" id="win-screen">
+      <div class="win-shine"></div>
+      <div class="win-badge">🏆</div>
+      <div class="win-title">恭喜中奖！</div>
+      <div class="win-name" id="win-name-text">亲爱的 张三</div>
+      <div class="win-prize" id="win-prize-text">一等奖</div>
+      <div class="win-desc">请凭此页面到领奖处领取奖品<br>感谢您的参与，祝您好运！</div>
+    </div>
+
+    <!-- 未中奖 -->
+    <div class="miss-screen" id="miss-screen">
+      <div class="miss-icon">😊</div>
+      <div class="miss-title">很遗憾，本轮未中奖</div>
+      <div class="miss-sub" id="miss-sub-text">感谢您的参与！<br>后续还有更多奖项，继续等待吧～</div>
+      <div class="miss-continue" id="miss-continue-tip">继续等待下一轮抽奖</div>
     </div>
   </div>
 
 </div>
+
+<canvas id="win-confetti"></canvas>
 
 <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
 
@@ -115,64 +261,40 @@ function parseConfigFromHash() {
   try {
     var hash = window.location.hash.slice(1);
     if (!hash) return null;
-
     if (/^[A-Z0-9]{4,8}$/.test(hash) && hash.length <= 8) {
-      // 旧版短ID：尝试从 localStorage 读取
       var oldSetup = null;
       try { oldSetup = JSON.parse(localStorage.getItem('lottery_setup')); } catch(e) {}
-      if (oldSetup && oldSetup.name) {
-        return { s: oldSetup, p: null, _actId: hash };
-      }
+      if (oldSetup && oldSetup.name) { return { s: oldSetup, p: null, _actId: hash }; }
       return null;
     }
-
-    // 新版base64解码
     var latin1 = atob(hash);
     var percentEncoded = latin1.split('').map(function(c) {
       return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
     }).join('');
     var miniSetup = JSON.parse(decodeURIComponent(percentEncoded));
-
     var setup = {
-      name: miniSetup.n || '',
-      date: miniSetup.d || '',
-      org: miniSetup.o || '',
-      location: miniSetup.l || '',
-      desc: miniSetup.c || '',
-      _actId: miniSetup.id || ''
+      name: miniSetup.n || '', date: miniSetup.d || '', org: miniSetup.o || '',
+      location: miniSetup.l || '', desc: miniSetup.c || '', _actId: miniSetup.id || ''
     };
-
     return { s: setup, p: null, _actId: miniSetup.id || '' };
-  } catch(e) {
-    return null;
-  }
+  } catch(e) { return null; }
 }
 
 // ============= 初始化 =============
 (function init() {
-  // 检测服务器 — 必须验证返回 JSON {ok:true}，避免静态服务器误判
   var xhr = new XMLHttpRequest();
   xhr.open('GET', '/api/health');
   xhr.timeout = 2000;
   xhr.onload = function() {
     if (xhr.status === 200) {
-      try {
-        var data = JSON.parse(xhr.responseText);
-        if (data && data.ok === true) {
-          HAS_SERVER = true;
-          document.getElementById('server-note').style.display = 'block';
-          return;
-        }
-      } catch(e) {}
+      try { var data = JSON.parse(xhr.responseText); if (data && data.ok === true) { HAS_SERVER = true; document.getElementById('server-note').style.display = 'block'; return; } } catch(e) {}
     }
-    // 不是真正的服务器
     HAS_SERVER = false;
   };
   xhr.onerror = function() { HAS_SERVER = false; };
   xhr.ontimeout = function() { HAS_SERVER = false; };
   xhr.send();
 
-  // 解析活动配置
   document.getElementById('loading-screen').style.display = 'none';
   ACTIVITY_CONFIG = parseConfigFromHash();
 
@@ -182,9 +304,6 @@ function parseConfigFromHash() {
   }
 
   var setup = ACTIVITY_CONFIG.s;
-  var actId = ACTIVITY_CONFIG._actId || setup._actId || '';
-
-  // 显示活动信息
   document.getElementById('event-name').textContent = setup.name;
   var metaHtml = '';
   if (setup.date) metaHtml += '📅 ' + setup.date + '<br>';
@@ -193,38 +312,24 @@ function parseConfigFromHash() {
   if (setup.desc) metaHtml += '📝 ' + setup.desc;
   document.getElementById('event-meta').innerHTML = metaHtml;
   document.getElementById('event-subtitle').textContent = setup.name;
-
-  // 从服务器/本地加载奖项
   loadPrizes();
-
-  // 检查是否已签到
   checkAlreadyJoined();
-
   document.getElementById('main-content').style.display = 'block';
 })();
 
 function loadPrizes() {
-  // 尝试从服务器获取
   if (HAS_SERVER) {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', '/api/prizes');
     xhr.timeout = 3000;
     xhr.onload = function() {
       if (xhr.status === 200) {
-        try {
-          var prizes = JSON.parse(xhr.responseText);
-          ACTIVITY_CONFIG.p = prizes;
-          showPrizes(prizes);
-        } catch(e) {}
+        try { var prizes = JSON.parse(xhr.responseText); ACTIVITY_CONFIG.p = prizes; showPrizes(prizes); } catch(e) {}
       }
     };
     xhr.send();
   } else {
-    // 从 localStorage 加载
-    try {
-      var p = JSON.parse(localStorage.getItem('lottery_prizes'));
-      if (p && p.length) { ACTIVITY_CONFIG.p = p; showPrizes(p); }
-    } catch(e) {}
+    try { var p = JSON.parse(localStorage.getItem('lottery_prizes')); if (p && p.length) { ACTIVITY_CONFIG.p = p; showPrizes(p); } } catch(e) {}
   }
 }
 
@@ -237,31 +342,43 @@ function showPrizes(prizes) {
 
 function escH(s) { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-// ============= 已签到检查 =============
 function checkAlreadyJoined() {
-  var setup = ACTIVITY_CONFIG.s;
-  var actId = ACTIVITY_CONFIG._actId || (setup && setup._actId) || '';
+  var actId = ACTIVITY_CONFIG._actId || ((ACTIVITY_CONFIG.s || {})._actId) || '';
   var key = 'lottery_joined_' + (actId || 'default');
-
   var saved = localStorage.getItem(key);
   if (saved) {
     try {
       var data = JSON.parse(saved);
-      if (data.actId && data.actId !== actId) {
-        // 活动已重置
-        localStorage.removeItem(key);
-        return;
+      if (data.actId && data.actId !== actId) { localStorage.removeItem(key); return; }
+      // 已签到过，直接进入等待/结果页面
+      document.getElementById('join-form').style.display = 'none';
+      _myPhone = data.phone || '';
+      _myName = data.name || '';
+      // 先检查是否已有结果
+      var results = [];
+      try { results = JSON.parse(localStorage.getItem('lottery_results')) || []; } catch(e2) {}
+      var alreadyWon = false;
+      for (var i = 0; i < results.length; i++) {
+        var phones = results[i].winnerPhones || [];
+        if (phones.indexOf(_myPhone) !== -1) {
+          alreadyWon = true;
+          _alreadyWon = true;
+          document.getElementById('waiting-name-sub').textContent = _myName + '，请耐心等待抽奖开始';
+          document.getElementById('waiting-screen').style.display = 'block';
+          setTimeout(function(rr) { return function() { showWinResult(rr.prizeName, rr.prizeDesc); }; }(results[i]), 300);
+          break;
+        }
       }
-      showSuccess(data.name);
+      if (!alreadyWon) {
+        showWaiting(data.name, null);
+      }
     } catch(e) {}
   }
 }
 
-// ============= 签到逻辑 =============
 function showError(msg) {
   var el = document.getElementById('error-msg');
-  el.textContent = msg;
-  el.style.display = 'block';
+  el.textContent = msg; el.style.display = 'block';
   setTimeout(function() { el.style.display = 'none'; }, 4000);
 }
 
@@ -281,7 +398,6 @@ function joinLottery() {
   btn.innerHTML = '<span style="display:inline-block;width:16px;height:16px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 0.6s linear infinite;vertical-align:middle;margin-right:6px;"></span>提交中...';
 
   if (HAS_SERVER) {
-    // ===== 服务器模式：直接提交到 API =====
     var xhr = new XMLHttpRequest();
     xhr.open('POST', '/api/participants');
     xhr.setRequestHeader('Content-Type', 'application/json');
@@ -293,95 +409,66 @@ function joinLottery() {
         try {
           var resp = JSON.parse(xhr.responseText);
           if (resp && resp.ok) {
-            // 记录本地状态
             var key = 'lottery_joined_' + (actId || 'default');
             localStorage.setItem(key, JSON.stringify({ name: name, phone: phone, actId: actId, poolSize: resp.count }));
-            // 也存到本地 participants（兼容其他页面从 localStorage 读取）
             var parts = [];
             try { parts = JSON.parse(localStorage.getItem('lottery_participants')) || []; } catch(e) {}
             if (!parts.some(function(p) { return p.phone === phone && p.actId === actId; })) {
               parts.push(resp.entry || { name: name, phone: phone, actId: actId, joinTime: new Date().toLocaleString(), source: 'qr' });
               localStorage.setItem('lottery_participants', JSON.stringify(parts));
             }
-            // 直接用服务器返回的人数（过滤当前 actId），不需要第二次 GET
             var poolCount = typeof resp.count === 'number' ? resp.count : parts.length;
             showSuccess(name, poolCount);
             return;
           }
           showError('服务器响应异常，请重试');
-        } catch(e) {
-          showError('服务器响应异常，请重试');
-        }
+        } catch(e) { showError('服务器响应异常，请重试'); }
       } else {
-        try {
-          var err = JSON.parse(xhr.responseText);
-          showError(err.error || '提交失败，请重试');
-        } catch(e2) {
-          showError('服务器繁忙，请稍后重试');
-        }
+        try { var err = JSON.parse(xhr.responseText); showError(err.error || '提交失败，请重试'); } catch(e2) { showError('服务器繁忙，请稍后重试'); }
       }
     };
-    xhr.onerror = function() {
-      btn.disabled = false;
-      btn.innerHTML = '<span>签到并加入抽奖</span>';
-      // 网络失败时降级到离线模式
-      HAS_SERVER = false;
-      submitOffline(name, phone, actId);
-    };
-    xhr.ontimeout = function() {
-      btn.disabled = false;
-      btn.innerHTML = '<span>签到并加入抽奖</span>';
-      // 超时时降级到离线模式
-      HAS_SERVER = false;
-      submitOffline(name, phone, actId);
-    };
+    xhr.onerror = function() { btn.disabled = false; btn.innerHTML = '<span>签到并加入抽奖</span>'; HAS_SERVER = false; submitOffline(name, phone, actId); };
+    xhr.ontimeout = function() { btn.disabled = false; btn.innerHTML = '<span>签到并加入抽奖</span>'; HAS_SERVER = false; submitOffline(name, phone, actId); };
     xhr.send(JSON.stringify({ name: name, phone: phone, actId: actId, source: 'qr' }));
   } else {
-    // ===== 离线模式：使用 localStorage =====
     submitOffline(name, phone, actId);
   }
 }
 
-// 离线签到（localStorage 模式 + 降级兜底）
 function submitOffline(name, phone, actId) {
   try {
     var participants = [];
     try { participants = JSON.parse(localStorage.getItem('lottery_participants')) || []; } catch(e) {}
-
-    if (participants.some(function(p) { return p.phone === phone && p.actId === actId; })) {
-      showError('该手机号已参与本次活动');
-      return;
-    }
-
+    if (participants.some(function(p) { return p.phone === phone && p.actId === actId; })) { showError('该手机号已参与本次活动'); return; }
     participants.push({ name: name, phone: phone, actId: actId, joinTime: new Date().toLocaleString(), source: 'qr' });
     localStorage.setItem('lottery_participants', JSON.stringify(participants));
-
     var key = 'lottery_joined_' + (actId || 'default');
     localStorage.setItem(key, JSON.stringify({ name: name, phone: phone, actId: actId }));
-
     showSuccess(name, participants.filter(function(p) { return p.actId === actId; }).length);
-  } catch(e) {
-    showError('提交失败，请重试');
-  }
+  } catch(e) { showError('提交失败，请重试'); }
 }
 
 function showSuccess(name, poolCount) {
+  // 短暂显示成功提示，然后切换到等待页面
   document.getElementById('success-name').textContent = name;
   document.getElementById('join-form').style.display = 'none';
   document.getElementById('success-screen').style.display = 'block';
-  // 优先使用传入的确切人数
-  if (typeof poolCount === 'number') {
-    document.getElementById('pool-num').textContent = poolCount;
-  } else {
-    document.getElementById('pool-num').textContent = '...';
-  }
-  // 异步再刷新一次确保最新（有服务器时走 API，无服务器时走 localStorage）
+  setTimeout(function() {
+    document.getElementById('success-screen').style.display = 'none';
+    showWaiting(name, poolCount);
+  }, 1200);
+}
+
+function showWaiting(name, poolCount) {
+  document.getElementById('waiting-name-sub').textContent = name + '，请耐心等待抽奖开始';
+  if (typeof poolCount === 'number') { document.getElementById('pool-num').textContent = poolCount; }
+  document.getElementById('waiting-screen').style.display = 'block';
   fetchPoolCount();
+  startResultListening();
 }
 
 function fetchPoolCount() {
   var actId = ACTIVITY_CONFIG._actId || ((ACTIVITY_CONFIG.s || {})._actId) || '';
-
   if (HAS_SERVER) {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', '/api/participants');
@@ -390,25 +477,17 @@ function fetchPoolCount() {
       if (xhr.status === 200) {
         try {
           var parts = JSON.parse(xhr.responseText);
-          if (Array.isArray(parts)) {
-            var count = actId ? parts.filter(function(p) { return p.actId === actId; }).length : parts.length;
-            document.getElementById('pool-num').textContent = count;
-            return;
-          }
+          if (Array.isArray(parts)) { var count = actId ? parts.filter(function(p) { return p.actId === actId; }).length : parts.length; document.getElementById('pool-num').textContent = count; return; }
         } catch(e) {}
       }
-      // 服务器返回异常，降级到 localStorage
       fallbackPoolCount(actId);
     };
     xhr.onerror = function() { fallbackPoolCount(actId); };
     xhr.ontimeout = function() { fallbackPoolCount(actId); };
     xhr.send();
-  } else {
-    fallbackPoolCount(actId);
-  }
+  } else { fallbackPoolCount(actId); }
 }
 
-// localStorage 兜底计数
 function fallbackPoolCount(actId) {
   try {
     var parts = JSON.parse(localStorage.getItem('lottery_participants')) || [];
@@ -417,13 +496,270 @@ function fallbackPoolCount(actId) {
   } catch(e) {}
 }
 
-// 键盘事件
+// ============= 结果监听：SSE + 离线轮询 =============
+var _myPhone = '';
+var _myName = '';
+var _resultSSE = null;
+var _offlinePollTimer = null;
+var _knownResultCount = 0;
+var _alreadyWon = false;
+var _remainingPrizesCount = 0;
+
+function startResultListening() {
+  // 从 localStorage 获取本人信息
+  var actId = ACTIVITY_CONFIG ? (ACTIVITY_CONFIG._actId || (ACTIVITY_CONFIG.s || {})._actId || '') : '';
+  var key = 'lottery_joined_' + (actId || 'default');
+  try {
+    var saved = JSON.parse(localStorage.getItem(key));
+    if (saved) { _myPhone = saved.phone || ''; _myName = saved.name || ''; }
+  } catch(e) {}
+
+  // 记录已知结果数量基准
+  try {
+    var r = JSON.parse(localStorage.getItem('lottery_results')) || [];
+    _knownResultCount = r.length;
+  } catch(e) { _knownResultCount = 0; }
+
+  if (HAS_SERVER) {
+    startSSEListen();
+  } else {
+    startOfflinePoll();
+  }
+}
+
+function startSSEListen() {
+  if (_resultSSE) { try { _resultSSE.close(); } catch(e) {} }
+  try {
+    _resultSSE = new EventSource('/api/stream');
+
+    _resultSSE.addEventListener('results', function(e) {
+      try {
+        var results = JSON.parse(e.data);
+        localStorage.setItem('lottery_results', JSON.stringify(results));
+        checkMyResult(results);
+      } catch(ex) {}
+    });
+
+    _resultSSE.addEventListener('data', function(e) {
+      try {
+        var d = JSON.parse(e.data);
+        if (d.results !== undefined) {
+          localStorage.setItem('lottery_results', JSON.stringify(d.results));
+          checkMyResult(d.results);
+        }
+        if (d.prizes !== undefined) {
+          _remainingPrizesCount = d.prizes.length;
+        }
+      } catch(ex) {}
+    });
+
+    _resultSSE.onerror = function() {
+      // 断线后切换为离线轮询
+      setTimeout(function() {
+        if (!_alreadyWon) startOfflinePoll();
+      }, 3000);
+    };
+  } catch(e) { startOfflinePoll(); }
+}
+
+function startOfflinePoll() {
+  clearInterval(_offlinePollTimer);
+  _offlinePollTimer = setInterval(function() {
+    try {
+      var results = JSON.parse(localStorage.getItem('lottery_results')) || [];
+      checkMyResult(results);
+    } catch(e) {}
+  }, 2000);
+}
+
+function checkMyResult(results) {
+  if (_alreadyWon || !_myPhone) return;
+  // 检查是否中奖
+  for (var i = 0; i < results.length; i++) {
+    var r = results[i];
+    var phones = r.winnerPhones || [];
+    if (phones.indexOf(_myPhone) !== -1) {
+      _alreadyWon = true;
+      clearInterval(_offlinePollTimer);
+      if (_resultSSE) { /* 保持连接以便持续显示 */ }
+      showWinResult(r.prizeName, r.prizeDesc);
+      return;
+    }
+  }
+  // 如果有新结果但本人未在其中 → 显示未中奖（仅针对最新一轮）
+  if (results.length > _knownResultCount) {
+    _knownResultCount = results.length;
+    // 检查是否还有未抽的奖项（有则继续等待，否则显示遗憾）
+    checkRemainingPrizes(results);
+  }
+}
+
+function checkRemainingPrizes(results) {
+  var wonPrizeIds = {};
+  results.forEach(function(r) { wonPrizeIds[r.prizeId] = true; });
+
+  function evaluate(prizes) {
+    var remaining = prizes.filter(function(p) { return !wonPrizeIds[p.id]; });
+    if (remaining.length > 0) {
+      // 还有奖项未抽，更新提示继续等待
+      document.getElementById('miss-continue-tip').textContent = '继续等待，还有 ' + remaining.length + ' 个奖项';
+      showMissRound();
+    } else {
+      // 所有奖项已抽完，显示"全部结束"
+      showMissFinal();
+    }
+  }
+
+  if (HAS_SERVER) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/api/prizes');
+    xhr.timeout = 3000;
+    xhr.onload = function() {
+      try { evaluate(JSON.parse(xhr.responseText)); } catch(e) { evaluate([]); }
+    };
+    xhr.onerror = function() {
+      try { evaluate(JSON.parse(localStorage.getItem('lottery_prizes')) || []); } catch(e) { evaluate([]); }
+    };
+    xhr.send();
+  } else {
+    try { evaluate(JSON.parse(localStorage.getItem('lottery_prizes')) || []); } catch(e) { evaluate([]); }
+  }
+}
+
+function showWinResult(prizeName, prizeDesc) {
+  document.getElementById('waiting-screen').style.display = 'none';
+  document.getElementById('miss-screen').style.display = 'none';
+  document.getElementById('win-name-text').textContent = '亲爱的 ' + (_myName || '您');
+  document.getElementById('win-prize-text').textContent = prizeName || '大奖';
+  document.getElementById('win-screen').style.display = 'block';
+  launchWinConfetti();
+}
+
+function showMissRound() {
+  // 本轮未中，但还有奖项 → 短暂显示未中提示，3秒后返回等待
+  var missEl = document.getElementById('miss-screen');
+  document.getElementById('waiting-screen').style.display = 'none';
+  document.getElementById('miss-sub-text').innerHTML = '很遗憾本轮未抽中<br>后续还有更多奖项，继续加油！';
+  missEl.style.display = 'block';
+  setTimeout(function() {
+    if (!_alreadyWon) {
+      missEl.style.display = 'none';
+      document.getElementById('waiting-screen').style.display = 'block';
+    }
+  }, 3500);
+}
+
+function showMissFinal() {
+  document.getElementById('waiting-screen').style.display = 'none';
+  document.getElementById('miss-screen').style.display = 'block';
+  document.getElementById('miss-sub-text').innerHTML = '感谢您的参与！<br>本次活动已全部结束，期待下次再见～';
+  document.getElementById('miss-continue-tip').textContent = '感谢参与 🎉';
+  clearInterval(_offlinePollTimer);
+  if (_resultSSE) { try { _resultSSE.close(); } catch(e) {} }
+}
+
+// ============= 中奖纸屑动画 =============
+function launchWinConfetti() {
+  var canvas = document.getElementById('win-confetti');
+  canvas.style.display = 'block';
+  var ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  var particles = [];
+  var colors = ['#f59e0b','#c4603a','#b08a3e','#8b6520','#c19a4a','#d4b87a','#2d8a5e'];
+  var confettiCount = (window.innerWidth < 768 || /Mobi|Android/i.test(navigator.userAgent)) ? 40 : 100;
+  var maxFrames = confettiCount < 60 ? 140 : 200;
+  for (var i = 0; i < confettiCount; i++) {
+    particles.push({
+      x: Math.random() * canvas.width, y: -20,
+      w: Math.random() * 9 + 4, h: Math.random() * 5 + 2,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vy: Math.random() * 3 + 1.5,
+      vx: (Math.random() - 0.5) * 4,
+      r: Math.random() * Math.PI * 2,
+      rs: (Math.random() - 0.5) * 0.25
+    });
+  }
+  var frame = 0;
+  function drawFrame() {
+    frame++;
+    if (frame > maxFrames) { ctx.clearRect(0,0,canvas.width,canvas.height); canvas.style.display='none'; return; }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(function(p) {
+      p.x += p.vx; p.y += p.vy; p.vy += 0.025; p.r += p.rs;
+      if (p.y > canvas.height + 30) p.y = -20;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.restore();
+    });
+    requestAnimationFrame(drawFrame);
+  }
+  drawFrame();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   var nameInput = document.getElementById('nameInput');
   var phoneInput = document.getElementById('phoneInput');
   if (nameInput) nameInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') phoneInput.focus(); });
   if (phoneInput) phoneInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') joinLottery(); });
 });
+
+// ============= 粒子背景 =============
+(function() {
+  var canvas = document.getElementById('particles');
+  var ctx = canvas.getContext('2d');
+  var particles = [];
+  var W, H;
+  var golds = [
+    'rgba(193,154,74,', 'rgba(176,138,62,', 'rgba(160,120,50,',
+    'rgba(200,170,100,', 'rgba(140,100,40,', 'rgba(175,120,55,',
+  ];
+  function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  function createParticles(n) {
+    particles = [];
+    for (var i = 0; i < n; i++) {
+      particles.push({
+        x: Math.random() * W, y: Math.random() * H,
+        r: Math.random() * 1.8 + 0.3,
+        alpha: Math.random() * 0.5 + 0.15,
+        maxAlpha: Math.random() * 0.5 + 0.3,
+        minAlpha: Math.random() * 0.08 + 0.02,
+        speed: Math.random() * 0.25 + 0.04,
+        twinkleSpeed: Math.random() * 0.015 + 0.004,
+        twinkleDir: 1,
+        gold: golds[Math.floor(Math.random() * golds.length)],
+        wobble: Math.random() * Math.PI * 2,
+        wobbleSpeed: Math.random() * 0.3 + 0.1,
+      });
+    }
+  }
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    for (var i = 0; i < particles.length; i++) {
+      var p = particles[i];
+      p.alpha += p.twinkleSpeed * p.twinkleDir;
+      if (p.alpha >= p.maxAlpha) p.twinkleDir = -1;
+      if (p.alpha <= p.minAlpha) p.twinkleDir = 1;
+      p.wobble += p.wobbleSpeed * 0.01;
+      p.y -= p.speed;
+      if (p.y < -4) { p.y = H + 4; p.x = Math.random() * W; }
+      ctx.beginPath();
+      ctx.arc(p.x + Math.sin(p.wobble) * 2, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = p.gold + p.alpha + ')';
+      ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  var isMobile = W < 768 || /Mobi|Android/i.test(navigator.userAgent);
+  var particleCount = isMobile ? 30 : 160;
+  window.addEventListener('resize', function() {
+    resize();
+    var mob = W < 768 || /Mobi|Android/i.test(navigator.userAgent);
+    createParticles(mob ? 30 : 160);
+  });
+  createParticles(particleCount); draw();
+})();
 </script>
 
 </body>
